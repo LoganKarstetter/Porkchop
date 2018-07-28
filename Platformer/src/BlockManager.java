@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.awt.geom.Line2D;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -74,6 +75,156 @@ public class BlockManager
                     Block.blocks.get(blocksGrid[x][y]).draw(dbGraphics,
                             x * BLOCK_WIDTH + offsetX, y * BLOCK_HEIGHT + offsetY);
                 }
+            }
+        }
+    }
+
+    /**
+     * Determine whether the sprite will collide with a block if it attempts
+     * to move by the given xStep value. If not, then the original xStep value
+     * is returned. Otherwise, the method will calculate the xStep needed to
+     * place the sprite up against the block without intersecting it.
+     * @param xPos The x coordinate position of the sprite with respect to the map.
+     * @param yPos The y coordinate position of the sprite with respect to the map.
+     * @param spriteWidth The width of the sprite in pixels.
+     * @param xStep The number of pixels to the left or right the sprite is trying to move.
+     * @return The original or an adjusted xStep value.
+     */
+    public int checkHorizontalCollisions(int xPos, int yPos, int spriteWidth, int xStep)
+    {
+        //Declare two variables for holding grid coordinates
+        int gridX, gridY;
+
+        //Determine whether the sprite is moving left or right
+        if (xStep > 0) //The sprite is moving right
+        {
+            //Calculate the grid coordinates, account for sprite width
+            gridX = (xPos + xStep + spriteWidth) / BLOCK_WIDTH;
+            gridY = yPos / BLOCK_HEIGHT;
+
+            //Check special conditions that could trigger exceptions
+            if (gridX >= gridWidth)  //If the gridX is at or outside the bounds of the grid
+            {
+                //We've reached the right edge of the map, move the sprite up against the edge
+                return mapWidth - (xPos + spriteWidth);
+            }
+            else if (gridY < 0) //If the gridY is above the map, the sprite may be jumping
+            {
+                return xStep;
+            }
+
+            //If the movement will result in collision with a block
+            if (Block.blocks.get(blocksGrid[gridX][gridY]).isActive())
+            {
+                return (gridX * BLOCK_WIDTH) - (xPos + spriteWidth);
+            }
+            else //Return the original xStep
+            {
+                return xStep;
+            }
+        }
+        else //The sprite is moving left
+        {
+            //We do not need to account for sprite width
+            gridX = (xPos + xStep) / BLOCK_WIDTH;
+            gridY = yPos / BLOCK_HEIGHT;
+
+            //Check special conditions that could trigger exceptions
+            if (gridX < 0) //If the gridX is less than zero
+            {
+                //We're headed off the left side of the map
+                return 0 - xPos;
+            }
+            else if (gridY < 0) //If the gridY is above the map, the sprite may be jumping
+            {
+                return xStep;
+            }
+
+            //If the movement will result in collision with a block
+            if (Block.blocks.get(blocksGrid[gridX][gridY]).isActive())
+            {
+                //Account for the width of the block
+                return ((gridX * BLOCK_WIDTH) + BLOCK_WIDTH) - xPos;
+            }
+            else //Return the original xStep
+            {
+                return xStep;
+            }
+        }
+    }
+
+    /**
+     * Determine whether the sprite will collide with a block if it attempts
+     * to jump or fall by the given yStep value. If so, then the method will
+     * calculate an adjusted yStep value needed to hit the bottom of or land
+     * on top of the block. Otherwise, the original yStep will be returned.
+     * @param xPos The x coordinate position of the sprite with respect to the map.
+     * @param yPos The y coordinate position of the sprite with respect to the map.
+     * @param spriteWidth The width of the sprite in pixels.
+     * @param spriteHeight The height of the sprite in pixels
+     * @param yStep The number of pixels up or down the sprite is trying to move.
+     * @return The original or an adjusted yStep value.
+     */
+    public int checkVerticalCollisions(int xPos, int yPos, int spriteWidth, int spriteHeight, int yStep)
+    {
+        //Declare three variables for the sprite's grid coordinates
+        int gridXLeft, gridXRight, gridY; //The two x grid coordinates check the left and right sides of the sprite
+
+        //Determine whether the sprite is moving up or down
+        if (yStep < 0) //The sprite is moving upwards
+        {
+            //Calculate the grid coordinates
+            gridXLeft = xPos / BLOCK_WIDTH;
+            gridXRight = (xPos + spriteWidth) / BLOCK_WIDTH;
+            gridY = (yPos + yStep) / BLOCK_HEIGHT;
+
+            //Check if the sprite is jumping or falling out of the map
+            if (gridY < 0 || gridY >= gridHeight)
+            {
+                return yStep; //Let them fall
+            }
+            else if (gridXRight >= gridWidth) //If the sprite is near the right border of the map
+            {
+                gridXRight = gridXLeft; //Nothing exists off the map so there cannot be collision, ignore gridXRight here
+            }
+
+            //If the jumping will result in collision with any overhead block
+            if (Block.blocks.get(blocksGrid[gridXLeft][gridY]).isActive()
+                    || Block.blocks.get(blocksGrid[gridXRight][gridY]).isActive())
+            {
+                return ((gridY * BLOCK_HEIGHT) + BLOCK_HEIGHT) - yPos; //Account for block height
+            }
+            else //Return original yStep
+            {
+                return yStep;
+            }
+        }
+        else //The sprite is moving downwards
+        {
+            //Account for sprite height when falling
+            gridXLeft = xPos / BLOCK_WIDTH;
+            gridXRight = (xPos + spriteWidth) / BLOCK_WIDTH;
+            gridY = (yPos + yStep + spriteHeight) / BLOCK_HEIGHT;
+
+            //Check special conditions that could cause exceptions
+            if (gridY < 0 || gridY >= gridHeight) //If the sprite is jumping or falling out of the map
+            {
+                return yStep; //Let them fall
+            }
+            else if (gridXRight >= gridWidth) //If the sprite is near the right border of the map
+            {
+                gridXRight = gridXLeft; //Nothing exists off the map so there cannot be collision, ignore gridXRight here
+            }
+
+            //If the falling will result in collision with any block beneath the sprite
+            if (Block.blocks.get(blocksGrid[gridXLeft][gridY]).isActive()
+                    || Block.blocks.get(blocksGrid[gridXRight][gridY]).isActive())
+            {
+                return (gridY * BLOCK_HEIGHT) - (yPos + spriteHeight);
+            }
+            else //Return original yStep
+            {
+                return yStep;
             }
         }
     }

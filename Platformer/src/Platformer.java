@@ -9,7 +9,7 @@ import java.awt.event.WindowListener;
 public class Platformer extends JFrame implements WindowListener
 {
     /** The desired FPS/UPS for the platformer */
-    private static int DEFAULT_FPS = 10;
+    private static int DEFAULT_FPS = 30;
 
     /** The PlatformerPanel used to play the game */
     private PlatformerPanel platformerPanel;

@@ -7,7 +7,7 @@ public class PlatformerSprite extends Sprite
 
     /** The maximum number of calls to the sprite's update method that can occur before
      * its rising behavior ends and it begins falling downwards. */
-    private static final int MAX_UP_STEPS = 10;
+    private static final int MAX_UP_STEPS = 15;
     /** The current number of updates that have occurred since the sprite began rising. */
     private int upSteps;
 
@@ -56,14 +56,95 @@ public class PlatformerSprite extends Sprite
      */
     public void move()
     {
-        //Move the sprite according to user input
-        if (keyManager.left)
+        //Move the sprite regardless of state according to user input
+        if (keyManager.left) //Move left
         {
-            xPos -= xStep;
+            //Check for block collisions while trying to move left
+            xPos += blockManager.checkHorizontalCollisions(xPos, yPos, width, -xStep);
+
+            //Do not allow the sprite to go off the left of the map
+            if (xPos < 0)
+            {
+                xPos = 0;
+            }
         }
-        else if (keyManager.right)
+        else if (keyManager.right) //Move right
         {
-            xPos += xStep;
+            //Check for block collisions while trying to move right
+            xPos += blockManager.checkHorizontalCollisions(xPos, yPos, width, xStep);
+
+            //Make sure the sprite doesn't go off the right side of the map
+            if (xPos + xStep + width > blockManager.getMapDimensions().x )
+            {
+                xPos = blockManager.getMapDimensions().x - width;
+            }
+        }
+
+        //Perform various actions based on the sprite's state
+        if (state == NORMAL)
+        {
+            //Check if the sprite is standing in thin air, if so make it fall
+            int newYStep = blockManager.checkVerticalCollisions(xPos, yPos, width, height, yStep);
+            if (newYStep != 0) //The sprite is not on the ground
+            {
+                state = FALLING;
+                yPos += newYStep;
+            }
+            else //If the sprite is on solid ground
+            {
+                //Check for jump input from the user
+                if (keyManager.up)
+                {
+                    //Make sure the sprite has room to move upwards before changing states
+                    newYStep = blockManager.checkVerticalCollisions(xPos, yPos, width, height, -yStep);
+                    if (newYStep < 0) //Negative is upwards
+                    {
+                        //Change the sprite's state to rising
+                        state = RISING;
+                        yPos += newYStep;
+                        upSteps++;
+                    }
+                }
+            }
+        }
+        else if (state == FALLING)
+        {
+            //Fall until the sprite reaches the ground
+            int newYStep = blockManager.checkVerticalCollisions(xPos, yPos, width, height, yStep);
+            if (newYStep != 0) //The sprite has not reached the ground
+            {
+                yPos += newYStep;
+            }
+            else //The sprite hit the ground, so its state should be changed to normal
+            {
+                state = NORMAL;
+            }
+        }
+        else if (state == RISING)
+        {
+            //Check if the sprite needs to begin falling
+            if (upSteps >= MAX_UP_STEPS)
+            {
+                //Change the state and reset upSteps to zero
+                state = FALLING;
+                upSteps = 0;
+            }
+            else //The sprite is free to continue rising upwards
+            {
+                //If the sprite doesn't have room to move upwards it should begin falling
+                int newYStep = blockManager.checkVerticalCollisions(xPos, yPos, width, height, -yStep);
+                if (newYStep < 0) //Negative is upwards
+                {
+                    //Move upwards
+                    yPos += newYStep;
+                    upSteps++;
+                }
+                else //The sprite has hit something, start falling
+                {
+                    state = FALLING;
+                    upSteps = 0;
+                }
+            }
         }
     }
 

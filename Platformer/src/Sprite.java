@@ -10,8 +10,6 @@ public class Sprite
     protected static final int NORMAL = 0;
     /** The state of the sprite when it is falling downwards */
     protected static final int FALLING = 1;
-    /** An integer used to specify the vertical behavior of the sprite */
-    protected int state;
 
     /** The direction of the sprite when it is standing still */
     private static final int STILL = 0;
@@ -19,6 +17,9 @@ public class Sprite
     private static final int LEFT = 1;
     /** The right direction */
     private static final int RIGHT = 2;
+
+    /** An integer used to specify the vertical behavior of the sprite */
+    protected int state;
     /** The direction the sprite is currently moving */
     private int direction;
 
@@ -33,9 +34,9 @@ public class Sprite
     protected int height;
 
     /** The number of pixels this sprite will move in the x-direction each update */
-    protected int xStep = 10;
-    /** The number of pixels this sprite can move downwards in the y-direction each update */
-    protected int yStep;
+    protected int xStep = 5;
+    /** The number of pixels this sprite can move upwards or downwards in the y-direction each update */
+    protected int yStep = 7;
 
     /** The amount of time allocated for each cycle of the animation loop (nanos) */
     protected long loopPeriod;
