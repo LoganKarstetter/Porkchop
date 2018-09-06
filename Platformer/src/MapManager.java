@@ -7,25 +7,32 @@ import java.io.InputStreamReader;
 
 /**
  * @author Logan Karstetter
- * Date: 07/01/2018
+ * Date: 09/05/2018
  */
-public class BlockManager
+public class MapManager
 {
     /** The default width of the grid in blocks */
     private static final int DEFAULT_WIDTH = 10;
     /** The default height of the grid in blocks*/
     private static final int DEFAULT_HEIGHT = 10;
-    /** The width of each block */
+
+    /** The width of each block in the grid */
     private static final int BLOCK_WIDTH = 30;
-    /** The height of each block */
+    /** The height of each block in the grid */
     private static final int BLOCK_HEIGHT = 30;
 
-    /** The grid of block ids that create the map */
-    private int[][] blocksGrid;
+    /** The array of sprite ids in the game */
+    private Sprite[] spriteList;
+    /** The number of sprites in the game */
+    private int numSprites;
+
+    /** The grid of sprite ids that initialize the map */
+    private int[][] mapGrid;
     /** The width of the grid of blocks (in blocks) */
     private int gridWidth = DEFAULT_WIDTH;
     /** The height of the grid of blocks (in blocks) */
     private int gridHeight = DEFAULT_HEIGHT;
+
     /** The width of the entire map in pixels */
     private int mapWidth;
     /** The height of the entire map in pixels */
@@ -35,44 +42,75 @@ public class BlockManager
     private String filePath = "Levels/LevelsConfig.txt";
 
     /**
-     * Create a BlockManager for centralizing all the interactions with the
-     * blocks. Upon creation a BlockManager initializes all the blocks used
-     * in the game. An ImageLoader is passed to load the images for each of
-     * the blocks.
-     * @param imageLoader The ImageLoader used to load the block's images.
+     * Create a MapManager for centralizing all interactions with sprites.
+     * Upon creation a MapManager initializes the sprites used in the game.
+     * It also loads the game levels and creates the map.
+     * @param maxSprites The maximum number of sprites allowed in the game.
+     * @param imageLoader An ImageLoader used to load the game images.
+     * @param loopPeriod The number of nano secs allowed for a game loop cycle.
+     * @param keyManager A KeyManager used to interpret user input.
      */
-    public BlockManager(ImageLoader imageLoader)
+    public MapManager(int maxSprites, ImageLoader imageLoader, long loopPeriod, KeyManager keyManager)
     {
-        //Create the blocksGrid
-        Block.initializeBlocks(imageLoader, BLOCK_WIDTH, BLOCK_HEIGHT);
+        //Create the spritesList
+        spriteList = new Sprite[maxSprites];
+        numSprites = 0;
 
-        //Load the layout of the blocks from the level config(s)
+        //Setup the map and sprites
         loadLevels();
-
-        //Calculate the map dimensions
+        initializeSprites(imageLoader, loopPeriod, keyManager);
         mapWidth = gridWidth * BLOCK_WIDTH;
         mapHeight = gridHeight * BLOCK_HEIGHT;
     }
 
     /**
-     * Draw the blocks onto the screen using the specified offset.
+     * Initialize the game's sprites.
+     * @param imageLoader The imageLoader used to load sprite images.
+     * @param loopPeriod The number of nano secs allowed for a game loop cycle.
+     * @param keyManager A KeyManager used to interpret user input.
+     */
+    public void initializeSprites(ImageLoader imageLoader, long loopPeriod, KeyManager keyManager)
+    {
+        //Create each of the sprites/blocks
+        addSprite(new Sprite(numSprites, false, false)); //Empty block (id == 0)
+        addSprite(new PlatformerSprite(numSprites, "Serpent Body", imageLoader, loopPeriod, keyManager, this)); //Platformer (id == 1)
+        addSprite(new Sprite(numSprites, true, true, "Serpent Body", imageLoader));
+    }
+
+    /**
+     * Update the game sprites.
+     */
+    public void update()
+    {
+        //Update the sprites, skip the static empty block (id == 1)
+        for (int index = 1; index < numSprites; index++)
+        {
+            spriteList[index].update();
+        }
+    }
+
+    /**
+     * Draw the map blocks onto the screen using the specified offset.
      * If a block cannot be seen on screen then it will not be drawn.
-     * @param dbGraphics The graphics object used to draw the blocks.
+     * @param dbGraphics The graphics object used to draw the map.
      * @param offsetX The pixel offset in the x direction.
      * @param offsetY The pixel offset in the y direction.
      */
-    public void draw(Graphics dbGraphics, int offsetX, int offsetY)
+    public void drawBlocks(Graphics dbGraphics, int offsetX, int offsetY)
     {
-        //Draw each block onto the screen in row order
+        //Draw each block sprite onto the screen in row order
+        Sprite tempBlock;
         for (int x = 0; x < gridWidth; x++)
         {
             for (int y = 0; y < gridHeight; y++)
             {
                 //Only draw the blocks that can be seen on screen
-                if ((x * BLOCK_WIDTH + BLOCK_WIDTH + offsetX > 0)
+                tempBlock = spriteList[mapGrid[x][y]];
+                if ((tempBlock.isBlock)
+                        && (x * BLOCK_WIDTH + BLOCK_WIDTH + offsetX > 0)
                         && (x * BLOCK_WIDTH + offsetX < PlatformerPanel.WIDTH))
                 {
-                    Block.blocks.get(blocksGrid[x][y]).draw(dbGraphics,
+                    spriteList[mapGrid[x][y]].draw(dbGraphics,
                             x * BLOCK_WIDTH + offsetX, y * BLOCK_HEIGHT + offsetY);
                 }
             }
@@ -80,17 +118,17 @@ public class BlockManager
     }
 
     /**
-     * Determine whether the sprite will collide with a block if it attempts
-     * to move by the given xStep value. If not, then the original xStep value
-     * is returned. Otherwise, the method will calculate the xStep needed to
-     * place the sprite up against the block without intersecting it.
+     * Determine whether a sprite at the given coordinates will collide with an active
+     * block if it attempts to move by the given xStep value. If not, then the original
+     * xStep value is returned. Otherwise, the method will calculate the xStep needed
+     * to place the sprite up against the block without intersecting it.
      * @param xPos The x coordinate position of the sprite with respect to the map.
      * @param yPos The y coordinate position of the sprite with respect to the map.
      * @param spriteWidth The width of the sprite in pixels.
      * @param xStep The number of pixels to the left or right the sprite is trying to move.
      * @return The original or an adjusted xStep value.
      */
-    public int checkHorizontalCollisions(int xPos, int yPos, int spriteWidth, int xStep)
+    public int checkHorizontalBlockCollisions(int xPos, int yPos, int spriteWidth, int xStep)
     {
         //Declare two variables for holding grid coordinates
         int gridX, gridY;
@@ -114,7 +152,7 @@ public class BlockManager
             }
 
             //If the movement will result in collision with a block
-            if (Block.blocks.get(blocksGrid[gridX][gridY]).isActive())
+            if (spriteList[mapGrid[gridX][gridY]].isActiveBlock())
             {
                 return (gridX * BLOCK_WIDTH) - (xPos + spriteWidth);
             }
@@ -141,7 +179,7 @@ public class BlockManager
             }
 
             //If the movement will result in collision with a block
-            if (Block.blocks.get(blocksGrid[gridX][gridY]).isActive())
+            if (spriteList[mapGrid[gridX][gridY]].isActiveBlock())
             {
                 //Account for the width of the block
                 return ((gridX * BLOCK_WIDTH) + BLOCK_WIDTH) - xPos;
@@ -165,7 +203,7 @@ public class BlockManager
      * @param yStep The number of pixels up or down the sprite is trying to move.
      * @return The original or an adjusted yStep value.
      */
-    public int checkVerticalCollisions(int xPos, int yPos, int spriteWidth, int spriteHeight, int yStep)
+    public int checkVerticalBlockCollisions(int xPos, int yPos, int spriteWidth, int spriteHeight, int yStep)
     {
         //Declare three variables for the sprite's grid coordinates
         int gridXLeft, gridXRight, gridY; //The two x grid coordinates check the left and right sides of the sprite
@@ -189,8 +227,8 @@ public class BlockManager
             }
 
             //If the jumping will result in collision with any overhead block
-            if (Block.blocks.get(blocksGrid[gridXLeft][gridY]).isActive()
-                    || Block.blocks.get(blocksGrid[gridXRight][gridY]).isActive())
+            if (spriteList[mapGrid[gridXLeft][gridY]].isActiveBlock()
+                    || spriteList[mapGrid[gridXRight][gridY]].isActiveBlock())
             {
                 return ((gridY * BLOCK_HEIGHT) + BLOCK_HEIGHT) - yPos; //Account for block height
             }
@@ -217,8 +255,8 @@ public class BlockManager
             }
 
             //If the falling will result in collision with any block beneath the sprite
-            if (Block.blocks.get(blocksGrid[gridXLeft][gridY]).isActive()
-                    || Block.blocks.get(blocksGrid[gridXRight][gridY]).isActive())
+            if (spriteList[mapGrid[gridXLeft][gridY]].isActiveBlock()
+                    || spriteList[mapGrid[gridXRight][gridY]].isActiveBlock())
             {
                 return (gridY * BLOCK_HEIGHT) - (yPos + spriteHeight);
             }
@@ -263,7 +301,7 @@ public class BlockManager
                     //Read the dimensions of the blocksGrid
                     gridWidth = Integer.parseInt(line.substring(line.indexOf('[') + 1, line.indexOf(',')).trim());
                     gridHeight = Integer.parseInt(line.substring(line.indexOf(',') + 1, line.indexOf(']')).trim());
-                    blocksGrid = new int[gridWidth][gridHeight];
+                    mapGrid = new int[gridWidth][gridHeight];
                 }
                 else //The line is one or more numbers representing a block id
                 {
@@ -271,7 +309,7 @@ public class BlockManager
                     String lineIds[] = line.split(",");
                     for (int i = 0; i < gridWidth; i++)
                     {
-                        blocksGrid[i][lineCount] = Integer.parseInt(lineIds[i].trim());
+                        mapGrid[i][lineCount] = Integer.parseInt(lineIds[i].trim());
                     }
 
                     //Increment the line counter
@@ -322,7 +360,7 @@ public class BlockManager
             for (int j = 0; j < gridHeight; j++)
             {
                 //If the id stored in the index is 1, return the coordinates
-                if (blocksGrid[i][j] == 1)
+                if (mapGrid[i][j] == 1)
                 {
                     return new Point(i * BLOCK_WIDTH, j * BLOCK_HEIGHT);
                 }
@@ -341,5 +379,34 @@ public class BlockManager
     public Point getMapDimensions()
     {
         return new Point(mapWidth, mapHeight);
+    }
+
+    /**
+     * Add a new sprite to the sprite list.
+     * @param newSprite The sprite to be added.
+     * @return True on success, false otherwise.
+     */
+    public boolean addSprite(Sprite newSprite)
+    {
+        if (numSprites < spriteList.length)
+        {
+            spriteList[numSprites] = newSprite;
+            numSprites++;
+        }
+        return false;
+    }
+
+    /**
+     * Get the sprite located at the specified index.
+     * @param index The index of the sprite.
+     * @return The sprite or null if the index is out of bounds.
+     */
+    public Sprite getSprite(int index)
+    {
+        if (index < numSprites)
+        {
+            return spriteList[index];
+        }
+        return null;
     }
 }

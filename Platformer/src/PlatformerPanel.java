@@ -38,22 +38,19 @@ public class PlatformerPanel extends JPanel implements Runnable
     /** The image that is created/rendered offscreen and later painted to the screen */
     private Image dbImage;
 
-    /** The ImageLoader used to load images and animations for the game */
-    private ImageLoader imageLoader;
     /** The KeyManager that listens for user input for this PlatformerPanel */
     private KeyManager keyManager;
     /** The GameCamera that calculates offsets and draws the game elements accordingly */
     private GameCamera gameCamera;
 
-    /** The BlockManager used to manage the positions and displaying of the blocks */
-    private BlockManager blockManager;
-    /** The PlatformerSprite controlled by the user */
-    private PlatformerSprite platformerSprite;
+    /** The MapManager used to manage the positions and displaying of the blocks */
+    private MapManager mapManager;
 
     /**
      * Create a new PlatformerPanel. This panel is responsible for
      * running the animation loop which updates, renders, and draws
      * the game at the desired FPS/UPS.
+     * @param desiredFPS The desired FPS for the game.
      */
     public PlatformerPanel(int desiredFPS)
     {
@@ -69,17 +66,16 @@ public class PlatformerPanel extends JPanel implements Runnable
         requestFocus();
 
         //Create the imageLoader and keyManager
-        imageLoader = new ImageLoader();
+        ImageLoader imageLoader = new ImageLoader();
         imageLoader.loadImagesFromFile("ImagesConfig.txt");
         keyManager = new KeyManager(this);
         this.addKeyListener(keyManager);
 
         //Create the blockManager and platformerSprite
-        blockManager = new BlockManager(imageLoader);
-        platformerSprite = new PlatformerSprite(loopPeriod, imageLoader, "Serpent Body", keyManager, blockManager);
+        mapManager = new MapManager(30, imageLoader, loopPeriod, keyManager);
 
         //Create the gameCamera and pass references to the game elements
-        gameCamera = new GameCamera(platformerSprite, blockManager);
+        gameCamera = new GameCamera(mapManager);
     }
 
     /**
@@ -238,7 +234,7 @@ public class PlatformerPanel extends JPanel implements Runnable
         if (!isPaused && !gameOver)
         {
             keyManager.update();
-            platformerSprite.update();
+            mapManager.update();
             gameCamera.update();
         }
     }

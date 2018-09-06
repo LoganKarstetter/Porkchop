@@ -18,26 +18,25 @@ public class GameCamera
 
     /** The PlatformerSprite controlled by the user */
     private PlatformerSprite platformerSprite;
-    /** The BlockManager that manages all of the game's blocks */
-    private BlockManager blockManager;
+    /** The MapManager that manages the game map */
+    private MapManager mapManager;
 
     /**
      * Create a GameCamera for displaying the game's elements in the panel. The
      * GameCamera is responsible for calculating offsets to track the playerSprite
      * in the center of the screen and subsequently drawing the game elements with
      * respect to the offsets.
-     * @param platformerSprite The platformerSprite controlled by the user.
-     * @param blockManager The blockManager that maintains all of the blocks.
+     * @param mapManager The mapManager that maintains the game map.
      */
-    public GameCamera(PlatformerSprite platformerSprite, BlockManager blockManager)
+    public GameCamera(MapManager mapManager)
     {
-        //Store the reference to the platformerSprite
-        this.platformerSprite = platformerSprite;
-        this.blockManager = blockManager;
+        //Fetch a reference to the platformerSprite, it's id should always be 1
+        this.platformerSprite = (PlatformerSprite) mapManager.getSprite(1);
+        this.mapManager = mapManager;
 
         //Set up the view and get the map dimensions
         view = new Rectangle(offsetX, offsetY, PlatformerPanel.WIDTH, PlatformerPanel.HEIGHT);
-        mapDimensions = blockManager.getMapDimensions();
+        mapDimensions = mapManager.getMapDimensions();
     }
 
     /**
@@ -70,8 +69,8 @@ public class GameCamera
      */
     public void draw(Graphics dbGraphics)
     {
-        //Draw the game's elements using the game camera offsets
-        blockManager.draw(dbGraphics, -offsetX, -offsetY);
+        //Draw the blocks using the game camera offsets
+        mapManager.drawBlocks(dbGraphics, -offsetX, -offsetY);
 
         //Draw the sprite with respect to the offset
         if (offsetX == 0)

@@ -1,13 +1,15 @@
 import java.awt.*;
-
-public class PlatformerSprite extends Sprite
+/**
+ * @author Logan Karstetter
+ * Date: 09/05/2018
+ */
+public class PlatformerSprite extends DynamicSprite
 {
-    /** The state of the sprite when it is rising upwards */
-    private static final int RISING = 2;
-
     /** The maximum number of calls to the sprite's update method that can occur before
      * its rising behavior ends and it begins falling downwards. */
     private static final int MAX_UP_STEPS = 15;
+    /** The state of the sprite when it is rising upwards */
+    private static final int RISING = 2;
     /** The current number of updates that have occurred since the sprite began rising. */
     private int upSteps;
 
@@ -15,28 +17,27 @@ public class PlatformerSprite extends Sprite
     private KeyManager keyManager;
 
     /**
-     * Create a new platformer sprite with an x position, y position, and the name of the image intended to
-     * visually represent the sprite. The loopPeriod (in nanos) and imageLoader are included to
-     * load the images and control the speed of the animation. The sprite uses a keyManager to control
-     * the jumping behavior of the sprite.
-     * @param loopPeriod The amount of time allocated for each cycle of the animation loop (nanos).
-     * @param imageLoader The ImageLoader used to load images and animations for this platformer.
-     * @param imageName The name of the image that will visually represent this sprite.
-     * @param keyManager The KeyManager used to move the sprite.
-     * @param blockManager The BlockManager that the controls the movement of the blocks.
+     * Create a new platformer sprite with a unique id, the name of its representing image,
+     * an ImageLoader for loading images, the loop period of the game loop, a KeyManager
+     * for interpreting user input, and a MapManager for handling block interactions.
+     * @param id The unique identifier for this platformer sprite (should be 1).
+     * @param imageName The name of the image that will represent this sprite.
+     * @param imageLoader An ImageLoader used to load images and animations.
+     * @param loopPeriod The number of nanoseconds allowed for each cycle of the game loop.
+     * @param keyManager The KeyManager used to interpret user input.
+     * @param mapManager The MapManager that the handles block interactions.
      */
-    public PlatformerSprite(long loopPeriod, ImageLoader imageLoader, String imageName, KeyManager keyManager,
-                            BlockManager blockManager)
+    public PlatformerSprite(int id, String imageName, ImageLoader imageLoader, long loopPeriod, KeyManager keyManager, MapManager mapManager)
     {
-        //Call the sprite super constructor
-        super(loopPeriod, imageLoader, imageName, blockManager);
+        //Super constructor
+        super(id, imageName, imageLoader, loopPeriod, mapManager);
 
         //Store the keyManager and set upSteps to zero
         this.keyManager = keyManager;
         upSteps = 0;
 
         //Request the spawn point from the blockManager
-        Point spawnPoint = blockManager.getSpawnPoint();
+        Point spawnPoint = mapManager.getSpawnPoint();
         xPos = spawnPoint.x;
         yPos = spawnPoint.y;
     }
@@ -60,7 +61,7 @@ public class PlatformerSprite extends Sprite
         if (keyManager.left) //Move left
         {
             //Check for block collisions while trying to move left
-            xPos += blockManager.checkHorizontalCollisions(xPos, yPos, width, -xStep);
+            xPos += mapManager.checkHorizontalBlockCollisions(xPos, yPos, width, -xStep);
 
             //Do not allow the sprite to go off the left of the map
             if (xPos < 0)
@@ -71,12 +72,12 @@ public class PlatformerSprite extends Sprite
         else if (keyManager.right) //Move right
         {
             //Check for block collisions while trying to move right
-            xPos += blockManager.checkHorizontalCollisions(xPos, yPos, width, xStep);
+            xPos += mapManager.checkHorizontalBlockCollisions(xPos, yPos, width, xStep);
 
             //Make sure the sprite doesn't go off the right side of the map
-            if (xPos + xStep + width > blockManager.getMapDimensions().x )
+            if (xPos + xStep + width > mapManager.getMapDimensions().x )
             {
-                xPos = blockManager.getMapDimensions().x - width;
+                xPos = mapManager.getMapDimensions().x - width;
             }
         }
 
@@ -84,7 +85,7 @@ public class PlatformerSprite extends Sprite
         if (state == NORMAL)
         {
             //Check if the sprite is standing in thin air, if so make it fall
-            int newYStep = blockManager.checkVerticalCollisions(xPos, yPos, width, height, yStep);
+            int newYStep = mapManager.checkVerticalBlockCollisions(xPos, yPos, width, height, yStep);
             if (newYStep != 0) //The sprite is not on the ground
             {
                 state = FALLING;
@@ -96,7 +97,7 @@ public class PlatformerSprite extends Sprite
                 if (keyManager.up)
                 {
                     //Make sure the sprite has room to move upwards before changing states
-                    newYStep = blockManager.checkVerticalCollisions(xPos, yPos, width, height, -yStep);
+                    newYStep = mapManager.checkVerticalBlockCollisions(xPos, yPos, width, height, -yStep);
                     if (newYStep < 0) //Negative is upwards
                     {
                         //Change the sprite's state to rising
@@ -110,7 +111,7 @@ public class PlatformerSprite extends Sprite
         else if (state == FALLING)
         {
             //Fall until the sprite reaches the ground
-            int newYStep = blockManager.checkVerticalCollisions(xPos, yPos, width, height, yStep);
+            int newYStep = mapManager.checkVerticalBlockCollisions(xPos, yPos, width, height, yStep);
             if (newYStep != 0) //The sprite has not reached the ground
             {
                 yPos += newYStep;
@@ -132,7 +133,7 @@ public class PlatformerSprite extends Sprite
             else //The sprite is free to continue rising upwards
             {
                 //If the sprite doesn't have room to move upwards it should begin falling
-                int newYStep = blockManager.checkVerticalCollisions(xPos, yPos, width, height, -yStep);
+                int newYStep = mapManager.checkVerticalBlockCollisions(xPos, yPos, width, height, -yStep);
                 if (newYStep < 0) //Negative is upwards
                 {
                     //Move upwards

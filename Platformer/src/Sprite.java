@@ -2,43 +2,24 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 /**
  * @author Logan Karstetter
- * Date: 07/01/2018
+ * Date: 09/05/2018
  */
 public class Sprite
 {
-    /** The state of the sprite when it is not undergoing vertical motion */
-    protected static final int NORMAL = 0;
-    /** The state of the sprite when it is falling downwards */
-    protected static final int FALLING = 1;
-
-    /** The direction of the sprite when it is standing still */
-    private static final int STILL = 0;
-    /** The left direction */
-    private static final int LEFT = 1;
-    /** The right direction */
-    private static final int RIGHT = 2;
-
-    /** An integer used to specify the vertical behavior of the sprite */
-    protected int state;
-    /** The direction the sprite is currently moving */
-    private int direction;
-
-    /** The x-coordinate position of this sprite with respect to the map */
-    protected int xPos;
-    /** The y-coordinate position of this sprite with respect to the map */
-    protected int yPos;
-
-    /** The width of this sprite's image in pixels */
+    /** The unique identifier for this sprite */
+    protected int id;
+    /** Determines whether this sprite is active (collision detection) */
+    protected boolean isActive;
+    /** Determines whether this sprite is a block */
+    protected boolean isBlock;
+    /** Determines whether this sprite is animated */
+    protected boolean isAnimated;
+    /** The pixel width of this sprite */
     protected int width;
-    /** The height of this sprite's image in pixels */
+    /** The pixel height of this sprite */
     protected int height;
 
-    /** The number of pixels this sprite will move in the x-direction each update */
-    protected int xStep = 5;
-    /** The number of pixels this sprite can move upwards or downwards in the y-direction each update */
-    protected int yStep = 7;
-
-    /** The amount of time allocated for each cycle of the animation loop (nanos) */
+    /** The number of nanoseconds allowed for each cycle of the animation loop */
     protected long loopPeriod;
     /** Determines whether the animation sequence associated with this sprite should loop indefinitely */
     protected boolean isLooping;
@@ -52,97 +33,116 @@ public class Sprite
     /** The name of the current image presenting the sprite */
     protected String imageName;
 
-    /** The BlockManager that the controls the movement of the blocks. */
-    protected BlockManager blockManager;
+    /**
+     * Create a sprite with a unique id, a flag identifying
+     * whether the sprite is active, and a flag identifying
+     * whether the sprite is a block.
+     * @param id The unique id for this sprite.
+     * @param isActive Determines whether this sprite is active.
+     * @param isBlock Determines whether this sprite is a static block.
+     */
+    public Sprite(int id, boolean isActive, boolean isBlock)
+    {
+        this.id = id;
+        this.isActive = isActive;
+        this.isBlock = isBlock;
+        isAnimated = false;
+    }
 
     /**
-     * Create a new sprite with the name of the image intended to visually represent the sprite.
-     * The loopPeriod (in nanos) and imageLoader are included to load the images and control the
-     * speed of the animation. The BlockManager allows for sprite/block collision detection.
-     * This constructor is primarily used to setup the user controlled platformerSprite which
-     * needs its x and y position calculated with respect to its image.
-     * @param loopPeriod The amount of time allocated for each cycle of the animation loop (nanos).
-     * @param imageLoader The ImageLoader used to load images and animations for this platformer.
-     * @param imageName The name of the image that will visually represent this sprite.
-     * @param blockManager The BlockManager that the controls the movement of the blocks.
+     * Create a sprite with a unique id, a flag identifying
+     * whether the sprite is active, a flag identifying
+     * whether the sprite is a block, the name of the image
+     * representing it, and an ImageLoader to load images.
+     * @param id The unique id for this sprite.
+     * @param isActive Determines whether this sprite is active.
+     * @param isBlock Determines whether this sprite is a static block.
+     * @param imageName The name of the image representing the sprite.
+     * @param imageLoader An ImageLoader used to load the sprite images.
      */
-    public Sprite(long loopPeriod, ImageLoader imageLoader, String imageName, BlockManager blockManager)
+    public Sprite(int id, boolean isActive, boolean isBlock, String imageName, ImageLoader imageLoader)
     {
-        //Store the loopPeriod, imageLoader, imageName, and blockManager
-        this.loopPeriod = loopPeriod;
-        this.imageLoader = imageLoader;
+        this.id = id;
+        this.isActive = isActive;
+        this.isBlock = isBlock;
         this.imageName = imageName;
+        this.imageLoader = imageLoader;
+
+        //Set the image
+        isAnimated = false;
         setImage(imageName);
-        this.blockManager = blockManager;
+    }
 
-        //Set the state to normal
-        state = NORMAL;
+    /**
+     * Create an animated sprite with a unique id,
+     * a flag identifying whether the sprite is active,
+     * a flag identifying whether the sprite is a block,
+     * the name of the image representing it, an
+     * ImageLoader to load images, and the loop period
+     * of the game loop.
+     * @param id The unique id for this sprite.
+     * @param isActive Determines whether this sprite is active.
+     * @param isBlock Determines whether this sprite is a static block.
+     * @param imageName The name of the image representing the sprite.
+     * @param imageLoader An ImageLoader used to load the sprite images.
+     * @param loopPeriod The number of nanoseconds for a game loop cycle.
+     */
+    public Sprite(int id, boolean isActive, boolean isBlock, String imageName, ImageLoader imageLoader, long loopPeriod)
+    {
+        this.id = id;
+        this.isActive = isActive;
+        this.isBlock = isBlock;
+        this.imageName = imageName;
+        this.imageLoader = imageLoader;
+        this.loopPeriod = loopPeriod;
 
-        //Create the sequencePlayer
+        //Setup the animation
+        isAnimated = true;
+        setImage(imageName);
         sequencePlayer = new SequencePlayer(imageName, false, 1, loopPeriod, imageLoader);
     }
 
     /**
-     * Create a new sprite with an x position, y position, the name of the image intended to
-     * visually represent the sprite, and a reference to the BlockManager. The loopPeriod
-     * (in nanos) and imageLoader are included to load the images and control the speed of
-     * the animation. The BlockManager allows for sprite/block collision detection.
-     * @param x The x coordinate position of this sprite.
-     * @param y The y coordinate position of this sprite.
-     * @param loopPeriod The amount of time allocated for each cycle of the animation loop (nanos).
-     * @param imageLoader The ImageLoader used to load images and animations for this platformer.
-     * @param imageName The name of the image that will visually represent this sprite.
-     * @param blockManager The BlockManager that the controls the movement of the blocks.
-     */
-    public Sprite(int x, int y, long loopPeriod, ImageLoader imageLoader, String imageName, BlockManager blockManager)
-    {
-        //Store the loopPeriod, imageLoader, imageName, and blockManager
-        xPos = x;
-        yPos = y;
-        this.loopPeriod = loopPeriod;
-        this.imageLoader = imageLoader;
-        this.imageName = imageName;
-        setImage(imageName);
-        this.blockManager = blockManager;
-
-        //Set the state to normal and the direction to still
-        state = NORMAL;
-        direction = STILL;
-
-        //Create the sequencePlayer
-        sequencePlayer = new SequencePlayer(imageName, false, 1, loopPeriod, imageLoader);
-    }
-
-    /**
-     * Update the state of this sprite.
+     * Update the sprite.
      */
     public void update()
     {
         //Update the animation
-        sequencePlayer.update();
-        move();
+        if (isAnimated)
+        {
+            sequencePlayer.update();
+        }
     }
 
     /**
-     * Move the sprite.
+     * Draw the sprite at the given x and y coordinates if it is active
+     * (should be drawn and checked for collisions).
+     * @param dbGraphics The Graphics object used to draw the sprites.
+     * @param xPos The x coordinate describing the location of the sprite.
+     * @param yPos The y coordinate describing the location of the sprite.
      */
-    public void move()
+    public void draw(Graphics dbGraphics, int xPos, int yPos)
     {
-        //Move the sprite according to its direction
-        if (direction == LEFT)
+        //Check whether the block is active
+        if (isActive)
         {
-            xPos -= xStep;
-        }
-        else if (direction == RIGHT)
-        {
-            xPos += xStep;
+            //Draw the block's image if it exists
+            if (image != null)
+            {
+                dbGraphics.drawImage(image, xPos, yPos, width, height, null);
+            }
+            else //Draw a placeholder block instead
+            {
+                dbGraphics.setColor(Color.MAGENTA);
+                dbGraphics.drawRect(xPos, yPos, width, height);
+            }
         }
     }
 
     /**
      * Set the image to be displayed as a visual representation of this sprite.
      * This method also clears any existing sequencePlayers.
-     * @param imageName The name of the image as it is stored in the ImageLoader's imagesMap.
+     * @param imageName The name of the image as it is stored in the imagesMap.
      */
     public void setImage(String imageName)
     {
@@ -160,7 +160,7 @@ public class Sprite
     }
 
     /**
-     * Start an animation loop using this sprite's current image/sequence.
+     * Start an animation loop using the sprite's current image.
      */
     public void loopAnimation()
     {
@@ -174,7 +174,7 @@ public class Sprite
     }
 
     /**
-     * Cancel a currently looping animation.
+     * Cancel a looping animation.
      */
     public void stopLooping()
     {
@@ -187,22 +187,13 @@ public class Sprite
     }
 
     /**
-     * Draw the sprite using its current image of animation. If the current image cannot be
-     * found then a placeholder red square is draw instead.
-     * @param dbGraphics The Graphics object used to draw the spaceship.
+     * Returns true if the sprite is an active
+     * block. Otherwise, this method returns false.
+     * @return True or false.
      */
-    public void draw(Graphics dbGraphics)
+    public boolean isActiveBlock()
     {
-        //Get the image from the sequence player
-        image = sequencePlayer.getCurrentImage();
-        if (image != null)
-        {
-            dbGraphics.drawImage(image, xPos, yPos, null);
-        }
-        else //Draw the sprite as a purple square
-        {
-            dbGraphics.setColor(Color.MAGENTA);
-            dbGraphics.fillRect(xPos, yPos, width, height);
-        }
+        return (isActive && isBlock);
     }
+
 }
