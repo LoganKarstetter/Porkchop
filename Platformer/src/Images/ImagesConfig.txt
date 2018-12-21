@@ -1,4 +1,31 @@
 //Format single image: <image>, one per line
 //Format multiple images: <[sequence name: <image1>, <image2>]>, one per line
 Serpent Body.png
-Apple.png
+Serpent Head Down.png
+Grass.png
+Grass Float.png
+Raids Wallpaper.png
+Verac's Plateskirt Ironman.png
+Pig.png
+Pig Walk 1.png
+Pig Walk 2.png
+[Walk: Pig Walk 1.png, Pig Walk 2.png]
+[Idle: Grass Float.png, Grass.png]
+
+//Grass terrain
+Grass Block.png
+Grass Block Column.png
+Grass Block Column Base.png
+Grass Block Column Left Merge.png
+Grass Block Column Right Merge.png
+Grass Block Column Top.png
+Grass Block Ground.png
+Grass Block Left Edge.png
+Grass Block Left Edge Merge.png
+Grass Block Left Merge.png
+Grass Block Left Side.png
+Grass Block Right Edge.png
+Grass Block Right Edge Merge.png
+Grass Block Right Merge.png
+Grass Block Right Side.png
+

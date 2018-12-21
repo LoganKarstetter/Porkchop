@@ -8,8 +8,6 @@ public class PlatformerSprite extends DynamicSprite
     /** The maximum number of calls to the sprite's update method that can occur before
      * its rising behavior ends and it begins falling downwards. */
     private static final int MAX_UP_STEPS = 15;
-    /** The state of the sprite when it is rising upwards */
-    private static final int RISING = 2;
     /** The current number of updates that have occurred since the sprite began rising. */
     private int upSteps;
 
@@ -17,29 +15,28 @@ public class PlatformerSprite extends DynamicSprite
     private KeyManager keyManager;
 
     /**
-     * Create a new platformer sprite with a unique id, the name of its representing image,
-     * an ImageLoader for loading images, the loop period of the game loop, a KeyManager
-     * for interpreting user input, and a MapManager for handling block interactions.
-     * @param id The unique identifier for this platformer sprite (should be 1).
+     * Create a new platformer sprite with a unique id, the number of pixels the
+     * sprite should move each update in the x and y directions, the name of its
+     * representing image, an ImageLoader for loading images, the loop period of
+     * the game loop, a KeyManager for interpreting user input, and a MapManager
+     * for handling block interactions.
+     * @param id The unique identifier for this platformer sprite.
+     * @param xStep Number of pixels the sprite should move in the x direction each update.
+     * @param yStep Number of pixels the sprite should move in the y direction each update.
      * @param imageName The name of the image that will represent this sprite.
      * @param imageLoader An ImageLoader used to load images and animations.
      * @param loopPeriod The number of nanoseconds allowed for each cycle of the game loop.
      * @param keyManager The KeyManager used to interpret user input.
      * @param mapManager The MapManager that the handles block interactions.
      */
-    public PlatformerSprite(int id, String imageName, ImageLoader imageLoader, long loopPeriod, KeyManager keyManager, MapManager mapManager)
+    public PlatformerSprite(int id, int xStep, int yStep, String imageName, ImageLoader imageLoader, long loopPeriod, KeyManager keyManager, MapManager mapManager)
     {
         //Super constructor
-        super(id, imageName, imageLoader, loopPeriod, mapManager);
+        super(id, xStep, yStep, imageName, imageLoader, loopPeriod, mapManager);
 
         //Store the keyManager and set upSteps to zero
         this.keyManager = keyManager;
         upSteps = 0;
-
-        //Request the spawn point from the blockManager
-        Point spawnPoint = mapManager.getSpawnPoint();
-        xPos = spawnPoint.x;
-        yPos = spawnPoint.y;
     }
 
     /**
@@ -57,27 +54,36 @@ public class PlatformerSprite extends DynamicSprite
      */
     public void move()
     {
-        //Move the sprite regardless of state according to user input
-        if (keyManager.left) //Move left
+        //Move the sprite as long as its state is not dead
+        if (state != DEAD)
         {
-            //Check for block collisions while trying to move left
-            xPos += mapManager.checkHorizontalBlockCollisions(xPos, yPos, width, -xStep);
-
-            //Do not allow the sprite to go off the left of the map
-            if (xPos < 0)
+            if (keyManager.left) //Move left
             {
-                xPos = 0;
+                //Check for block collisions while trying to move left
+                xPos += mapManager.checkHorizontalBlockCollisions(xPos, yPos, width, -xStep);
+
+                //Do not allow the sprite to go off the left of the map
+                if (xPos < 0)
+                {
+                    xPos = 0;
+                }
             }
-        }
-        else if (keyManager.right) //Move right
-        {
-            //Check for block collisions while trying to move right
-            xPos += mapManager.checkHorizontalBlockCollisions(xPos, yPos, width, xStep);
-
-            //Make sure the sprite doesn't go off the right side of the map
-            if (xPos + xStep + width > mapManager.getMapDimensions().x )
+            else if (keyManager.right) //Move right
             {
-                xPos = mapManager.getMapDimensions().x - width;
+                //Check for block collisions while trying to move right
+                xPos += mapManager.checkHorizontalBlockCollisions(xPos, yPos, width, xStep);
+
+                //Make sure the sprite doesn't go off the right side of the map
+                if (xPos + xStep + width > mapManager.getMapDimensions().x )
+                {
+                    xPos = mapManager.getMapDimensions().x - width;
+                }
+            }
+
+            //Determine if the sprite has collided with another sprite
+            if (mapManager.checkSpriteCollisions(getRectangle(), id))
+            {
+                state = DEAD;
             }
         }
 
@@ -147,27 +153,9 @@ public class PlatformerSprite extends DynamicSprite
                 }
             }
         }
-    }
-
-    /**
-     * Draw the sprite using its current image of animation. If the current image cannot be
-     * found then a placeholder red square is draw instead.
-     * @param dbGraphics The Graphics object used to draw the spaceship.
-     * @param offsetX The x coordinate offset the sprite should be draw with respect to.
-     * @param offsetY The y coordinate offset the sprite should be draw with respect to.
-     */
-    public void draw(Graphics dbGraphics, int offsetX, int offsetY)
-    {
-        //Get the image from the sequence player
-        image = sequencePlayer.getCurrentImage();
-        if (image != null)
+        else if (state == DEAD)
         {
-            dbGraphics.drawImage(image, xPos + offsetX, yPos + offsetY, null);
-        }
-        else //Draw the sprite as a purple square
-        {
-            dbGraphics.setColor(Color.MAGENTA);
-            dbGraphics.fillRect(xPos + offsetX, yPos + offsetY, width, height);
+            //Fall out of the map
         }
     }
 

@@ -1,87 +1,111 @@
 import java.awt.*;
+import java.util.HashMap;
 
-/**
- * @author Logan Karstetter
- * Date: 07/22/2018
- */
 public class GameCamera
 {
-    /** The number of pixels the game's elements are shifted on the x-axis */
-    private int offsetX;
-    /** The number of pixels the game's elements are shifted on the x-axis */
-    private int offsetY;
-
-    /** The rectangular view of the map the camera is displaying */
-    private Rectangle view;
-    /** The dimensions of the game map */
+    private Rectangle cameraView;
     private Point mapDimensions;
 
-    /** The PlatformerSprite controlled by the user */
-    private PlatformerSprite platformerSprite;
-    /** The MapManager that manages the game map */
-    private MapManager mapManager;
-
-    /**
-     * Create a GameCamera for displaying the game's elements in the panel. The
-     * GameCamera is responsible for calculating offsets to track the playerSprite
-     * in the center of the screen and subsequently drawing the game elements with
-     * respect to the offsets.
-     * @param mapManager The mapManager that maintains the game map.
-     */
-    public GameCamera(MapManager mapManager)
+    public GameCamera(int mapWidthInPixels, int maxHeightInPixels)
     {
-        //Fetch a reference to the platformerSprite, it's id should always be 1
-        this.platformerSprite = (PlatformerSprite) mapManager.getSprite(1);
-        this.mapManager = mapManager;
-
-        //Set up the view and get the map dimensions
-        view = new Rectangle(offsetX, offsetY, PlatformerPanel.WIDTH, PlatformerPanel.HEIGHT);
-        mapDimensions = mapManager.getMapDimensions();
+        //Set up the camera view
+        cameraView = new Rectangle(0, 0, GamePanel.WIDTH, GamePanel.HEIGHT);
+        mapDimensions = new Point(mapWidthInPixels, maxHeightInPixels);
     }
 
-    /**
-     * Update the game camera and recalculate its x and y offset values.
-     */
-    public void update()
+    public void update(Point playerLocation)
     {
-        //Get the map coordinates of the sprite
-        Point spriteCoords = platformerSprite.getMapCoords();
+        //Set camera offsets to zero if the player is to the left of the middle of the screen
+        //Or if the width of the map is less than or equal to the width of the screen
+        if (playerLocation.x < (cameraView.width/2) || mapDimensions.x <= cameraView.width)
+        {
+            cameraView.x = 0;
+        }
+        else if (playerLocation.x + (cameraView.width/2) >= mapDimensions.x)
+        {
+            //If the player is at the far right side of the map, un-center them
+            cameraView.x = mapDimensions.x - cameraView.width;
+        }
+        else if (playerLocation.x >= (cameraView.width/2))
+        {
+            //If the player has passed the center of the screen, center them
+            cameraView.x = playerLocation.x - (cameraView.width/2);
+        }
 
-        //If the sprite's x coordinate is to the left of the center of the panel
-        //or if the entire map is already visible in the panel, set the offset to zero
-        if (spriteCoords.x < view.width/2 || mapDimensions.x == PlatformerPanel.WIDTH)
+        //Set camera offsets to zero if the player is below the middle of the screen
+        //Or if the height of the map is less than or equal to the height of the screen
+        if (playerLocation.y < (cameraView.height/2) || mapDimensions.y <= cameraView.height)
         {
-            offsetX = 0;
+            cameraView.y = 0;
         }
-        else if (spriteCoords.x + view.width/2 >= mapDimensions.x) //If the coordinate is close to end of the map
+        else if (playerLocation.y + (cameraView.height/2) >= mapDimensions.y)
         {
-            offsetX = mapDimensions.x - view.width; //The offset is the remaining distance
+            //If the player is along the bottom side of the map, un-center them
+            cameraView.y = mapDimensions.y - cameraView.height;
         }
-        else if (spriteCoords.x >= view.width/2) //If the coordinate is past the middle of the panel
+        else if (playerLocation.y >= (cameraView.height/2))
         {
-            offsetX = spriteCoords.x - view.width/2;
+            //If the player has passed the center of the screen, center them
+            cameraView.y = playerLocation.y - (cameraView.height/2);
         }
+
+        //Invert the results, the computed values are the pixel difference between the player location
+        //and the center of the screen. Inverting the values gives the true offset to add to center the player.
+        cameraView.x = -cameraView.x;
+        cameraView.y = -cameraView.y;
     }
 
-    /**
-     * Draw the game elements that are affected by the camera offsets.
-     * @param dbGraphics The graphics object used to draw this game's elements.
-     */
-    public void draw(Graphics dbGraphics)
+    public void draw(Graphics dbGraphics, int[][] blockIdMap, HashMap<Integer, Block> blocks,
+                     Enemy[] enemies, int numEnemies, Player player, EventBlock[] eventBlocks,
+                     int numEventBlocks, Ribbon[] ribbons, int numRibbons)
     {
-        //Draw the blocks using the game camera offsets
-        mapManager.drawBlocks(dbGraphics, -offsetX, -offsetY);
+        //Draw the ribbons
+        for (int i = 0; i < numRibbons; i++)
+        {
+            ribbons[i].draw(dbGraphics);
+        }
 
-        //Draw the sprite with respect to the offset
-        if (offsetX == 0)
+        //Draw the blockIdMap using the blocks map as a look-up-table
+        for (int x = 0; x < blockIdMap.length; x++)
         {
-            //Draw the sprite at its own coordinates
-            platformerSprite.draw(dbGraphics, 0, 0);
+            for (int y = 0; y < blockIdMap[0].length; y++)
+            {
+                //Only draw the blocks that can be seen on screen, only look at the last two digits for the id
+                if (blocks.containsKey(blockIdMap[x][y] % 100)
+                        && (x * Block.BLOCK_WIDTH + Block.BLOCK_WIDTH + cameraView.x) > 0
+                        && (x * Block.BLOCK_WIDTH + cameraView.x) < mapDimensions.x)
+                {
+                    blocks.get(blockIdMap[x][y] % 100).draw(dbGraphics,
+                            (x * Block.BLOCK_WIDTH) + cameraView.x, (y * Block.BLOCK_HEIGHT) + cameraView.y);
+                }
+            }
         }
-        else if (offsetX > 0)
+
+        //Draw the event blocks
+        for (int i = 0; i < numEventBlocks; i++)
         {
-            //Draw the sprite in the center or far right of the screen
-            platformerSprite.draw(dbGraphics, -offsetX, -offsetY);
+            eventBlocks[i].draw(dbGraphics, cameraView.x, cameraView.y);
         }
+
+        //Draw the enemies
+        for (int i = 0; i < numEnemies; i++)
+        {
+            enemies[i].draw(dbGraphics, cameraView.x, cameraView.y);
+        }
+
+        //Draw the player
+        player.draw(dbGraphics, cameraView.x, cameraView.y);
+    }
+
+    public void setMapDimensions(int newMapX, int newMapY)
+    {
+        mapDimensions.x = newMapX;
+        mapDimensions.y = newMapY;
+    }
+
+    public void resetCamera()
+    {
+        cameraView.x = 0;
+        cameraView.y = 0;
     }
 }

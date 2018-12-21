@@ -1,9 +1,9 @@
 import java.awt.*;
-import java.awt.geom.Line2D;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 
 /**
  * @author Logan Karstetter
@@ -21,7 +21,11 @@ public class MapManager
     /** The height of each block in the grid */
     private static final int BLOCK_HEIGHT = 30;
 
-    /** The array of sprite ids in the game */
+    /** A HashMap mapping sprite id to a boolean that determines
+     * whether or not that sprite can safely be copied/redefined. */
+    private HashMap<Integer, Boolean> spriteDefinitionsMap;
+
+    /** An array of sprites in the game */
     private Sprite[] spriteList;
     /** The number of sprites in the game */
     private int numSprites;
@@ -52,29 +56,59 @@ public class MapManager
      */
     public MapManager(int maxSprites, ImageLoader imageLoader, long loopPeriod, KeyManager keyManager)
     {
-        //Create the spritesList
+        //Create the spritesList and definitions map
         spriteList = new Sprite[maxSprites];
         numSprites = 0;
+        spriteDefinitionsMap = new HashMap<>();
 
-        //Setup the map and sprites
-        loadLevels();
-        initializeSprites(imageLoader, loopPeriod, keyManager);
+        //Define the sprites and setup the map
+        loadLevels(imageLoader, loopPeriod, keyManager);
         mapWidth = gridWidth * BLOCK_WIDTH;
         mapHeight = gridHeight * BLOCK_HEIGHT;
     }
 
     /**
-     * Initialize the game's sprites.
-     * @param imageLoader The imageLoader used to load sprite images.
-     * @param loopPeriod The number of nano secs allowed for a game loop cycle.
-     * @param keyManager A KeyManager used to interpret user input.
+     * Initialize game sprites and add them to the sprite list.
+     * The id of the sprite is passed to determine which definition to use.
+     * @param id The unique identifier for the sprite.
+     * @param imageLoader An ImageLoader used to load sprite images.
+     * @param loopPeriod The number of nano secs allocated for a single game cycle.
+     * @param keyManager A KeyManager for processing user input for the platformerSprite.
      */
-    public void initializeSprites(ImageLoader imageLoader, long loopPeriod, KeyManager keyManager)
+    private void initializeSprite(int id, ImageLoader imageLoader, long loopPeriod, KeyManager keyManager)
     {
-        //Create each of the sprites/blocks
-        addSprite(new Sprite(numSprites, false, false)); //Empty block (id == 0)
-        addSprite(new PlatformerSprite(numSprites, "Serpent Body", imageLoader, loopPeriod, keyManager, this)); //Platformer (id == 1)
-        addSprite(new Sprite(numSprites, true, true, "Serpent Body", imageLoader));
+        //Initialize sprites based off their id
+        if (!spriteDefinitionsMap.containsKey(id)
+                || spriteDefinitionsMap.get(id)) //If the sprite is not defined, or it is safe to copy the sprite
+        {
+            boolean safeToCopy = false;
+            switch (id)
+            {
+                case 0: //Empty block sprite
+                    addSprite(new Sprite(id, false, false));
+                    break;
+                case 1: //Platformer sprite
+                    addSprite(new PlatformerSprite(id, 5, 7, "Serpent Body", imageLoader, loopPeriod, keyManager, this));
+                    System.out.println("defined at id = " + id);
+                    break;
+                case 2:
+                    addSprite(new Sprite(id, true, true, "Serpent Body", imageLoader, loopPeriod));
+                    break;
+                case 3:
+                    addSprite(new DynamicSprite(id, 2, 7, "Serpent Head Down", imageLoader, loopPeriod, this));
+                    safeToCopy = true;
+                    break;
+                default:
+                    System.out.println("No sprite defined for id = " + id + ".");
+                    break;
+            }
+
+            //Add the sprite to the definitions if it hasn't been already
+            if (!spriteDefinitionsMap.containsKey(id))
+            {
+                spriteDefinitionsMap.put(id, safeToCopy);
+            }
+        }
     }
 
     /**
@@ -82,23 +116,24 @@ public class MapManager
      */
     public void update()
     {
-        //Update the sprites, skip the static empty block (id == 1)
-        for (int index = 1; index < numSprites; index++)
+        //Update the sprites
+        for (int index = 0; index < numSprites; index++)
         {
             spriteList[index].update();
         }
     }
 
     /**
-     * Draw the map blocks onto the screen using the specified offset.
-     * If a block cannot be seen on screen then it will not be drawn.
+     * Draw the map sprites onto the screen using the specified offset.
+     * If a sprite cannot be seen on screen then it will not be drawn.
+     * The sprites are drawn in two layers, blocks first then other sprites.
      * @param dbGraphics The graphics object used to draw the map.
      * @param offsetX The pixel offset in the x direction.
      * @param offsetY The pixel offset in the y direction.
      */
-    public void drawBlocks(Graphics dbGraphics, int offsetX, int offsetY)
+    public void drawSprites(Graphics dbGraphics, int offsetX, int offsetY)
     {
-        //Draw each block sprite onto the screen in row order
+        //Draw the blocks onto the screen in row order
         Sprite tempBlock;
         for (int x = 0; x < gridWidth; x++)
         {
@@ -112,6 +147,21 @@ public class MapManager
                 {
                     spriteList[mapGrid[x][y]].draw(dbGraphics,
                             x * BLOCK_WIDTH + offsetX, y * BLOCK_HEIGHT + offsetY);
+                }
+            }
+        }
+
+        //Draw the other sprites onto the screen
+        DynamicSprite tempSprite;
+        for (int index = 1; index < numSprites; index++) //Skip empty block and platformerSprite
+        {
+            if (spriteList[index].isActiveSprite()) //Draw the sprite if it is active and on screen
+            {
+                tempSprite = (DynamicSprite) spriteList[index];
+                if ((tempSprite.xPos + tempSprite.width + offsetX > 0)
+                        && (tempSprite.xPos + offsetX < PlatformerPanel.WIDTH))
+                {
+                    tempSprite.draw(dbGraphics, offsetX, offsetY);
                 }
             }
         }
@@ -268,6 +318,31 @@ public class MapManager
     }
 
     /**
+     * Determine whether a sprite is colliding with another a sprite. This method does not
+     * determine if a future movement will cause collision, but instead checks if the sprite's
+     * current location intersects with the location of another sprite. The id of the sprite
+     * is passed to ensure that collision with itself is ignored.
+     * @param spriteBounds A rectangle representing the bounds of a dynamic sprite.
+     * @param spriteId The id/index of the sprite in the spriteList.
+     * @return True if there is collision, false otherwise.
+     */
+    public boolean checkSpriteCollisions(Rectangle spriteBounds, int spriteId)
+    {
+        for (int index = 0; index < numSprites; index++)
+        {
+            //If the sprite can be converted/is a dynamic sprite, then check intersection
+            if (spriteList[index].isActiveSprite() && (index != spriteId)) //Separating these ifs avoids errors
+            {
+                if (spriteBounds.intersects(((DynamicSprite) spriteList[index]).getRectangle()))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Load levels described within the file located at the given filePath. For a single level,
      * the format of the file is as follows. The first line should be the dimensions of the level
      * enclosed in brackets. For example, the first line of a 10x10 grid level would be [10, 10].
@@ -275,8 +350,11 @@ public class MapManager
      * The number of integers on each line should match the given width dimension. Similarly the
      * number of lines of numbers should match the height dimension. The number zero should be
      * reserved for "empty space" blocks.
+     * @param imageLoader An ImageLoader used to load initialize sprites.
+     * @param loopPeriod Number of nano secs allowed for a single game loop.
+     * @param keyManager A KeyManager used to interpret used input for the platformerSprite.
      */
-    private void loadLevels()
+    private void loadLevels(ImageLoader imageLoader, long loopPeriod, KeyManager keyManager)
     {
         //Inform the user of the file reading
         System.out.println("Reading file: " + filePath);
@@ -310,6 +388,7 @@ public class MapManager
                     for (int i = 0; i < gridWidth; i++)
                     {
                         mapGrid[i][lineCount] = Integer.parseInt(lineIds[i].trim());
+                        initializeSprite(mapGrid[i][lineCount], imageLoader, loopPeriod, keyManager);
                     }
 
                     //Increment the line counter
@@ -346,31 +425,6 @@ public class MapManager
         }
     }
 
-    /**
-     * Get the coordinates of spawn point for the platformerSprite.
-     * In the event that the spawn point cannot be located, a point
-     * at (0, 0) will be returned.
-     * @return A new point containing the spawn point coordinates.
-     */
-    public Point getSpawnPoint()
-    {
-        //Search the blocksGrid for a block with id == 1
-        for (int i = 0; i < gridWidth; i++)
-        {
-            for (int j = 0; j < gridHeight; j++)
-            {
-                //If the id stored in the index is 1, return the coordinates
-                if (mapGrid[i][j] == 1)
-                {
-                    return new Point(i * BLOCK_WIDTH, j * BLOCK_HEIGHT);
-                }
-            }
-        }
-
-        //Return a point at (0, 0) if there are not blocks with id == 1
-        System.out.println("Error locating spawn coordinates.");
-        return new Point(0, 0);
-    }
 
     /**
      * Get the dimensions of the game map.
@@ -406,6 +460,23 @@ public class MapManager
         if (index < numSprites)
         {
             return spriteList[index];
+        }
+        return null;
+    }
+
+    /**
+     * Get the platformerSprite.
+     * @return The platformerSprite, or null if it does not exist.
+     */
+    public PlatformerSprite getPlatformerSprite()
+    {
+        //Find the platformerSprite in the sprite list
+        for (int i = 0; i < numSprites; i++)
+        {
+            if (spriteList[i].id == 1)
+            {
+                return (PlatformerSprite) spriteList[i];
+            }
         }
         return null;
     }

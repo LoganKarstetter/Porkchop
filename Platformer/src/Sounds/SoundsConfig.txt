@@ -1,0 +1,2 @@
+//Format single sound file: <sound>, one per line
+chicken.wav

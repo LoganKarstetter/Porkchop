@@ -1,5 +1,7 @@
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+
 /**
  * @author Logan Karstetter
  * Date: 09/05/2018
@@ -36,7 +38,8 @@ public class Sprite
     /**
      * Create a sprite with a unique id, a flag identifying
      * whether the sprite is active, and a flag identifying
-     * whether the sprite is a block.
+     * whether the sprite is a block. After each sprite is
+     * created, its definition is stored in the sprites array.
      * @param id The unique id for this sprite.
      * @param isActive Determines whether this sprite is active.
      * @param isBlock Determines whether this sprite is a static block.
@@ -62,9 +65,8 @@ public class Sprite
      */
     public Sprite(int id, boolean isActive, boolean isBlock, String imageName, ImageLoader imageLoader)
     {
-        this.id = id;
-        this.isActive = isActive;
-        this.isBlock = isBlock;
+        //Base constructor
+        this(id, isActive, isBlock);
         this.imageName = imageName;
         this.imageLoader = imageLoader;
 
@@ -89,9 +91,8 @@ public class Sprite
      */
     public Sprite(int id, boolean isActive, boolean isBlock, String imageName, ImageLoader imageLoader, long loopPeriod)
     {
-        this.id = id;
-        this.isActive = isActive;
-        this.isBlock = isBlock;
+        //Base constructor
+        this(id, isActive, isBlock);
         this.imageName = imageName;
         this.imageLoader = imageLoader;
         this.loopPeriod = loopPeriod;
@@ -196,4 +197,14 @@ public class Sprite
         return (isActive && isBlock);
     }
 
+    /**
+     * Returns true if the sprite is an active
+     * sprite (not a block). Otherwise, this
+     * method returns false.
+     * @return True or false.
+     */
+    public boolean isActiveSprite()
+    {
+        return (isActive && !isBlock);
+    }
 }
