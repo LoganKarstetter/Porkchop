@@ -47,7 +47,7 @@ public class Enemy extends Entity
                     direction = MOVING_RIGHT;
                     if (state != FALLING_STATE) //Change graphics
                     {
-                        setGraphicsState(Entity.RIGHT_GRAPHICS);
+                        setGraphicsState(Entity.MOVE_RIGHT_GRAPHICS);
                     }
 
                 }
@@ -59,7 +59,7 @@ public class Enemy extends Entity
                     direction = MOVING_LEFT;
                     if (state != FALLING_STATE)
                     {
-                        setGraphicsState(Entity.LEFT_GRAPHICS);
+                        setGraphicsState(Entity.MOVE_LEFT_GRAPHICS);
                     }
                 }
             }
@@ -74,7 +74,14 @@ public class Enemy extends Entity
             //Update graphics if enemy starts falling
             if (state == FALLING_STATE)
             {
-                setGraphicsState(Entity.MIDAIR_GRAPHICS);
+                if (direction == MOVING_RIGHT)
+                {
+                    setGraphicsState(Entity.MIDAIR_RIGHT_GRAPHICS);
+                }
+                else
+                {
+                    setGraphicsState(Entity.MIDAIR_LEFT_GRAPHICS);
+                }
             }
         }
         else if (state == FALLING_STATE)
@@ -82,14 +89,28 @@ public class Enemy extends Entity
             moveVertical(blockMap, speed);
 
             //Update graphics if enemy lands
-            if (state == NORMAL_STATE)
+            if (state == FALLING_STATE)
             {
-                setGraphicsState(Entity.IDLE_GRAPHICS);
+                if (direction == MOVING_RIGHT)
+                {
+                    setGraphicsState(Entity.IDLE_RIGHT_GRAPHICS);
+                }
+                else
+                {
+                    setGraphicsState(Entity.IDLE_LEFT_GRAPHICS);
+                }
             }
         }
         else if (state == DEAD_STATE)
         {
-            setGraphicsState(Entity.DYING_GRAPHICS);
+            if (direction == MOVING_RIGHT)
+            {
+                setGraphicsState(Entity.DYING_RIGHT_GRAPHICS);
+            }
+            else
+            {
+                setGraphicsState(Entity.DYING_LEFT_GRAPHICS);
+            }
         }
     }
 
@@ -98,15 +119,15 @@ public class Enemy extends Entity
         //Determine graphics state from direction, this initializes elapsedAnimationTimeInMs
         if (direction == MOVING_LEFT)
         {
-            setGraphicsState(Entity.LEFT_GRAPHICS);
+            setGraphicsState(Entity.MOVE_LEFT_GRAPHICS);
         }
         else if (direction == MOVING_RIGHT)
         {
-            setGraphicsState(Entity.RIGHT_GRAPHICS);
+            setGraphicsState(Entity.MOVE_RIGHT_GRAPHICS);
         }
         else
         {
-            setGraphicsState(Entity.IDLE_GRAPHICS);
+            setGraphicsState(Entity.IDLE_RIGHT_GRAPHICS);
         }
     }
 

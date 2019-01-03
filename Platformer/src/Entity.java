@@ -3,11 +3,14 @@ import java.util.HashMap;
 
 public abstract class Entity
 {
-    public static final int IDLE_GRAPHICS = 0;
-    public static final int LEFT_GRAPHICS = 1;
-    public static final int RIGHT_GRAPHICS = 2;
-    public static final int MIDAIR_GRAPHICS = 3;
-    public static final int DYING_GRAPHICS = 4;
+    public static final int IDLE_LEFT_GRAPHICS = 0;
+    public static final int IDLE_RIGHT_GRAPHICS = 1;
+    public static final int MOVE_LEFT_GRAPHICS = 2;
+    public static final int MOVE_RIGHT_GRAPHICS = 3;
+    public static final int MIDAIR_LEFT_GRAPHICS = 4;
+    public static final int MIDAIR_RIGHT_GRAPHICS = 5;
+    public static final int DYING_LEFT_GRAPHICS = 6;
+    public static final int DYING_RIGHT_GRAPHICS = 7;
     protected int graphicsState;
 
     protected static final int NORMAL_STATE = 0;
@@ -15,6 +18,10 @@ public abstract class Entity
     protected static final int JUMPING_STATE = 2;
     protected static final int DEAD_STATE = 3;
     protected int state;
+
+    protected static final boolean RIGHT = true;
+    protected static final boolean LEFT = false;
+    protected boolean lastDirectionMoved;
 
     protected int speed;
     protected long elapsedAnimationTimeInMs;
@@ -137,7 +144,7 @@ public abstract class Entity
                 }
                 return;
             }
-            else if (gridXRight >= blockMap.length) //umping along right side of map
+            else if (gridXRight >= blockMap.length) //Jumping along right side of map
             {
                 //Ignore gridXRight, no collision outside of map
                 gridXRight = gridXLeft;

@@ -66,18 +66,21 @@ public class Game implements LevelWatcher
         {
             //Player
             graphicsMap.put(1, new HashMap<>());
-            graphicsMap.get(1).put(Entity.IDLE_GRAPHICS,   new Animation(imageManager.getImages("Pig"), 0, false));
-            graphicsMap.get(1).put(Entity.LEFT_GRAPHICS,   new Animation(imageManager.getImages("Pig"), 0, false));
-            graphicsMap.get(1).put(Entity.RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Walk"), 0, false));
-            graphicsMap.get(1).put(Entity.MIDAIR_GRAPHICS, new Animation(imageManager.getImages("Pig"), 0, false));
-            graphicsMap.get(1).put(Entity.DYING_GRAPHICS,  new Animation(imageManager.getImages("Pig"), 0, false));
+            graphicsMap.get(1).put(Entity.IDLE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Pig Left"), 0, false));
+            graphicsMap.get(1).put(Entity.IDLE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Pig Right"), 0, false));
+            graphicsMap.get(1).put(Entity.MOVE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Pig Walk Left"), 500, false));
+            graphicsMap.get(1).put(Entity.MOVE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Pig Walk Right"), 500, false));
+            graphicsMap.get(1).put(Entity.MIDAIR_LEFT_GRAPHICS,  new Animation(imageManager.getImages("Pig Left"), 0, false));
+            graphicsMap.get(1).put(Entity.MIDAIR_RIGHT_GRAPHICS, new Animation(imageManager.getImages("Pig Right"), 0, false));
+            graphicsMap.get(1).put(Entity.DYING_LEFT_GRAPHICS,   new Animation(imageManager.getImages("Pig Left"), 0, false));
+            graphicsMap.get(1).put(Entity.DYING_RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Pig Right"), 0, false));
 
             //Define grass terrain blocks
             String[] grassBlocks = {"Grass Block", "Grass Block Column", "Grass Block Column Base", "Grass Block Column Left Merge",
                     "Grass Block Column Right Merge", "Grass Block Column Top", "Grass Block Ground", "Grass Block Left Edge", "Grass Block Left Edge Merge",
                     "Grass Block Left Merge", "Grass Block Left Side", "Grass Block Right Edge", "Grass Block Right Edge Merge", "Grass Block Right Merge", "Grass Block Right Side"};
 
-            //Loop and add animations to the HashMap, start at 2
+            //Loop and add animations to the HashMap, start at 2g
             for (int i = 2; i < grassBlocks.length + 2; i++)
             {
                 graphicsMap.put(i, new HashMap<>());
@@ -96,15 +99,18 @@ public class Game implements LevelWatcher
         //Define common elements that are used in every level
         //Test enemy
         graphicsMap.put(17, new HashMap<>());
-        graphicsMap.get(17).put(Entity.IDLE_GRAPHICS,   new Animation(imageManager.getImages("Serpent Head Down"), 0, false));
-        graphicsMap.get(17).put(Entity.LEFT_GRAPHICS,   new Animation(imageManager.getImages("Serpent Head Down"), 0, false));
-        graphicsMap.get(17).put(Entity.RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Serpent Head Down"), 0, false));
-        graphicsMap.get(17).put(Entity.MIDAIR_GRAPHICS, new Animation(imageManager.getImages("Serpent Head Down"), 0, false));
-        graphicsMap.get(17).put(Entity.DYING_GRAPHICS,  new Animation(imageManager.getImages("Serpent Head Down"), 0, false));
+        graphicsMap.get(17).put(Entity.IDLE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(17).put(Entity.IDLE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(17).put(Entity.MOVE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(17).put(Entity.MOVE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(17).put(Entity.MIDAIR_LEFT_GRAPHICS,  new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(17).put(Entity.MIDAIR_RIGHT_GRAPHICS, new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(17).put(Entity.DYING_LEFT_GRAPHICS,   new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(17).put(Entity.DYING_RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Serpent Body"), 0, false));
 
         //Level transition event block
         graphicsMap.put(18, new HashMap<>());
-        graphicsMap.get(18).put(Block.NORMAL_GRAPHICS,  new Animation(imageManager.getImages("Grass Float"), 0, false));
+        graphicsMap.get(18).put(Block.NORMAL_GRAPHICS,  new Animation(imageManager.getImages("Serpent Body"), 0, false));
 
         //Define the ribbon(s)
         addRibbon(new Ribbon(imageManager.getImages("Verac's Plateskirt Ironman").get(0), Ribbon.SCROLL_STILL, 2));
@@ -125,7 +131,7 @@ public class Game implements LevelWatcher
                     case 1:
                         if (player == null)
                         {
-                            player = new Player(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, 5, Entity.IDLE_GRAPHICS, graphicsMap.get(mappedId), playerInputComponent);
+                            player = new Player(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, 5, Entity.IDLE_RIGHT_GRAPHICS, graphicsMap.get(mappedId), playerInputComponent);
                             player.setLevelWatcher(this);
                         }
                         else //The player has already been defined, change position to start point

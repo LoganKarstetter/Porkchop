@@ -1,16 +1,32 @@
-//Format: The first line must be listed as [x, y], where x and y are integers specifying the dimensions of the gird.
-//The rest of the lines must be integers (0-9) representing blocks in the grid. The numbers should be separated
-//by commas. The number zero is reserved for empty spaces in the grid. Be sure that each number listed has a block
-//created representing it.
+//Format: The first line must be listed as [x, y] where x and y are integers specifying the dimensions of the grid.
+//The rest of the lines must be integers (00-99) representing blocks in the grid. A one should be placed at the start
+//of the number if that block is solid. The numbers should be separated by commas. The number zero/one hundred is
+//reserved for  empty spaces in the grid. Be sure that each number listed has a block created representing it.
 //Ex: [numColumns, numRows]
 [15, 10]
-0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0
-0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0
-0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-2, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0
-2, 2, 0, 1, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 2
-2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2
+000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000
+000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000
+000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000
+000, 000, 109, 102, 113, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000
+000, 000, 012, 008, 016, 000, 000, 000, 000, 000, 000, 000, 000, 000, 000
+001, 000, 107, 008, 016, 000, 110, 000, 000, 000, 000, 000, 000, 000, 000
+113, 000, 003, 008, 110, 102, 111, 000, 000, 000, 000, 000, 000, 000, 000
+115, 102, 104, 104, 111, 108, 108, 000, 000, 000, 000, 000, 000, 000, 000
+108, 108, 108, 108, 108, 108, 108, 000, 000, 000, 000, 000, 000, 000, 000
+108, 108, 108, 108, 108, 108, 108, 000, 000, 000, 000, 000, 000, 000, 000
+[15, 15 ]
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2
+0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0
+0, 0, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0
+1, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2
+2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2
+2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2
+2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2
+0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 0, 0, 0, 0
+0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0
+0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0
+2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2
+2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2

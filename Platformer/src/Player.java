@@ -16,6 +16,7 @@ public class Player extends Entity
         state = NORMAL_STATE;
         numOfJumpingUpdates = 0;
         elapsedAnimationTimeInMs = 0L;
+        lastDirectionMoved = Entity.RIGHT;
         hopOnDeath = false;
 
         //Store player data
@@ -109,8 +110,9 @@ public class Player extends Entity
                 }
                 if (state != FALLING_STATE && state != JUMPING_STATE) //Graphics change
                 {
-                    setGraphicsState(Entity.LEFT_GRAPHICS);
+                    setGraphicsState(Entity.MOVE_LEFT_GRAPHICS);
                 }
+                lastDirectionMoved = Entity.LEFT;
             }
             else if (inputComponent.right)
             {
@@ -120,12 +122,20 @@ public class Player extends Entity
                 }
                 if (state != FALLING_STATE && state != JUMPING_STATE)
                 {
-                    setGraphicsState(Entity.RIGHT_GRAPHICS);
+                    setGraphicsState(Entity.MOVE_RIGHT_GRAPHICS);
                 }
+                lastDirectionMoved = Entity.RIGHT;
             }
             else if (state != FALLING_STATE && state != JUMPING_STATE) //Idle
             {
-                setGraphicsState(Entity.IDLE_GRAPHICS);
+                if (lastDirectionMoved == Entity.RIGHT)
+                {
+                    setGraphicsState(Entity.IDLE_RIGHT_GRAPHICS);
+                }
+                else
+                {
+                    setGraphicsState(Entity.IDLE_LEFT_GRAPHICS);
+                }
             }
         }
 
@@ -135,16 +145,34 @@ public class Player extends Entity
             //Make the player fall if it is standing on thin air
             moveVertical(blockMap, speed);
 
-            //Attempt to jump upwards if the player is still grounded
-            if (state == NORMAL_STATE && inputComponent.up)
+            //Player is on the ground
+            if (state == NORMAL_STATE)
             {
-                moveVertical(blockMap, -speed);
-                numOfJumpingUpdates++;
-                setGraphicsState(Entity.MIDAIR_GRAPHICS);
+                //Attempt to jump upwards
+                if (inputComponent.up)
+                {
+                    moveVertical(blockMap, -speed);
+                    numOfJumpingUpdates++;
+                    if (lastDirectionMoved == Entity.RIGHT)
+                    {
+                        setGraphicsState(Entity.MIDAIR_RIGHT_GRAPHICS);
+                    }
+                    else
+                    {
+                        setGraphicsState(Entity.MIDAIR_LEFT_GRAPHICS);
+                    }
+                }
             }
             else if (state == FALLING_STATE) //Started falling
             {
-                setGraphicsState(Entity.MIDAIR_GRAPHICS);
+                if (lastDirectionMoved == Entity.RIGHT)
+                {
+                    setGraphicsState(Entity.MIDAIR_RIGHT_GRAPHICS);
+                }
+                else
+                {
+                    setGraphicsState(Entity.MIDAIR_LEFT_GRAPHICS);
+                }
             }
         }
         else if (state == JUMPING_STATE)
@@ -158,6 +186,14 @@ public class Player extends Entity
             else //Max height reached
             {
                 state = FALLING_STATE;
+                if (lastDirectionMoved == Entity.RIGHT)
+                {
+                    setGraphicsState(Entity.MIDAIR_RIGHT_GRAPHICS);
+                }
+                else
+                {
+                    setGraphicsState(Entity.MIDAIR_LEFT_GRAPHICS);
+                }
             }
         }
         else if (state == FALLING_STATE)
@@ -166,16 +202,26 @@ public class Player extends Entity
             numOfJumpingUpdates = 0;
             moveVertical(blockMap, speed);
 
-            //Back to idle
-            if (state == NORMAL_STATE)
+            if (lastDirectionMoved == Entity.RIGHT)
             {
-                setGraphicsState(Entity.IDLE_GRAPHICS);
+                setGraphicsState(Entity.MIDAIR_RIGHT_GRAPHICS);
+            }
+            else
+            {
+                setGraphicsState(Entity.MIDAIR_LEFT_GRAPHICS);
             }
         }
         else if (state == DEAD_STATE)
         {
             //Death animation
-            setGraphicsState(Entity.DYING_GRAPHICS);
+            if (lastDirectionMoved == Entity.RIGHT)
+            {
+                setGraphicsState(Entity.DYING_RIGHT_GRAPHICS);
+            }
+            else
+            {
+                setGraphicsState(Entity.DYING_LEFT_GRAPHICS);
+            }
             changeRibbonScrollDirection(ribbons, numRibbons, Ribbon.SCROLL_STILL);
 
             //Do a little jump then fall out of the map
@@ -202,7 +248,7 @@ public class Player extends Entity
                 state = NORMAL_STATE;
                 numOfJumpingUpdates = 0;
                 boundingBox.setLocation(spawnPoint);
-                setGraphicsState(Entity.IDLE_GRAPHICS);
+                setGraphicsState(Entity.IDLE_RIGHT_GRAPHICS);
                 resetRibbons(ribbons, numRibbons);
                 resetEnemies(enemies, numEnemies);
 

@@ -1,16 +1,13 @@
 //Format single image: <image>, one per line
 //Format multiple images: <[sequence name: <image1>, <image2>]>, one per line
 Serpent Body.png
-Serpent Head Down.png
 Grass.png
-Grass Float.png
 Raids Wallpaper.png
 Verac's Plateskirt Ironman.png
-Pig.png
-Pig Walk 1.png
-Pig Walk 2.png
-[Walk: Pig Walk 1.png, Pig Walk 2.png]
-[Idle: Grass Float.png, Grass.png]
+Pig Left.png
+Pig Right.png
+[Pig Walk Left: Pig Left Walk 1.png, Pig Left Walk 2.png]
+[Pig Walk Right: Pig Right Walk 1.png, Pig Right Walk 2.png]
 
 //Grass terrain
 Grass Block.png

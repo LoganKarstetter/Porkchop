@@ -1,5 +1,0 @@
-//Format single image: <image>, one per line
-//Format multiple images: <[sequence name: <image1>, <image2>]>, one per line
-Serpent Body.png
-Serpent Head Down.png
-Apple.png

@@ -9,17 +9,17 @@ public class Animation
     private long imageDurationInMs;
     private boolean isLooping;
 
-    public Animation(ArrayList<BufferedImage> imageSequence, int durationInSecs, boolean loopAnimation)
+    public Animation(ArrayList<BufferedImage> imageSequence, long durationInMs, boolean loopAnimation)
     {
         //Verify valid duration
-        if (durationInSecs <= 0)
+        if (durationInMs <= 0)
         {
-            durationInSecs = 1;
+            durationInMs = 1000;
         }
 
         //Store animation data
         images = imageSequence;
-        totalDurationInMs = (durationInSecs * 1000);
+        totalDurationInMs = durationInMs;
         imageDurationInMs = totalDurationInMs / images.size();
         isLooping = loopAnimation;
     }
