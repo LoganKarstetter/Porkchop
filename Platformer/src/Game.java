@@ -76,7 +76,7 @@ public class Game implements LevelWatcher
             graphicsMap.get(1).put(Entity.DYING_RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Pig Right"), 0, false));
 
             //Define grass terrain blocks
-            String[] grassBlocks = {"Grass Block", "Grass Block Column", "Grass Block Column Base", "Grass Block Column Left Merge",
+            String[] grassBlocks = {"Grass Block", "Grass Block Column", "Grass Block Column Merge", "Grass Block Column Base", "Grass Block Column Left Merge",
                     "Grass Block Column Right Merge", "Grass Block Column Top", "Grass Block Ground", "Grass Block Left Edge", "Grass Block Left Edge Merge",
                     "Grass Block Left Merge", "Grass Block Left Side", "Grass Block Right Edge", "Grass Block Right Edge Merge", "Grass Block Right Merge", "Grass Block Right Side"};
 
@@ -98,22 +98,22 @@ public class Game implements LevelWatcher
 
         //Define common elements that are used in every level
         //Test enemy
-        graphicsMap.put(17, new HashMap<>());
-        graphicsMap.get(17).put(Entity.IDLE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Serpent Body"), 0, false));
-        graphicsMap.get(17).put(Entity.IDLE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Serpent Body"), 0, false));
-        graphicsMap.get(17).put(Entity.MOVE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Serpent Body"), 0, false));
-        graphicsMap.get(17).put(Entity.MOVE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Serpent Body"), 0, false));
-        graphicsMap.get(17).put(Entity.MIDAIR_LEFT_GRAPHICS,  new Animation(imageManager.getImages("Serpent Body"), 0, false));
-        graphicsMap.get(17).put(Entity.MIDAIR_RIGHT_GRAPHICS, new Animation(imageManager.getImages("Serpent Body"), 0, false));
-        graphicsMap.get(17).put(Entity.DYING_LEFT_GRAPHICS,   new Animation(imageManager.getImages("Serpent Body"), 0, false));
-        graphicsMap.get(17).put(Entity.DYING_RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.put(18, new HashMap<>());
+        graphicsMap.get(18).put(Entity.IDLE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(18).put(Entity.IDLE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(18).put(Entity.MOVE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(18).put(Entity.MOVE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(18).put(Entity.MIDAIR_LEFT_GRAPHICS,  new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(18).put(Entity.MIDAIR_RIGHT_GRAPHICS, new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(18).put(Entity.DYING_LEFT_GRAPHICS,   new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(18).put(Entity.DYING_RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Serpent Body"), 0, false));
 
         //Level transition event block
-        graphicsMap.put(18, new HashMap<>());
-        graphicsMap.get(18).put(Block.NORMAL_GRAPHICS,  new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.put(19, new HashMap<>());
+        graphicsMap.get(19).put(Block.NORMAL_GRAPHICS,  new Animation(imageManager.getImages("Level Complete Sign"), 0, false));
 
         //Define the ribbon(s)
-        addRibbon(new Ribbon(imageManager.getImages("Verac's Plateskirt Ironman").get(0), Ribbon.SCROLL_STILL, 2));
+        addRibbon(new Ribbon(imageManager.getImages("Platformer Ribbon").get(0), Ribbon.SCROLL_STILL, 2));
 
         //Initialize the player, enemies and blocks from the map data
         for (int x = 0; x < levelMaps.get(currentLevel).length; x++)
@@ -142,30 +142,31 @@ public class Game implements LevelWatcher
                     //Grass Terrain
                     case 2: //Grass Block
                     case 3: //Grass Block Column
-                    case 4: //Grass Block Column Base
-                    case 5: //Grass Column Left Merge
-                    case 6: //Grass Column Right Merge
-                    case 7: //Grass Column Top
-                    case 8: //Grass Block Ground
-                    case 9: //Grass Block Left Edge
-                    case 10: //Grass Block Left Edge Merge
-                    case 11: //Grass Block Left Merge
-                    case 12: //Grass Block Left Side
-                    case 13: //Grass Block Right Edge
-                    case 14: //Grass Block Right Edge Merge
-                    case 15: //Grass Block Right Merge
-                    case 16: //Grass Block Right Side
+                    case 4: //Grass Block Column Merge
+                    case 5: //Grass Block Column Base
+                    case 6: //Grass Column Left Merge
+                    case 7: //Grass Column Right Merge
+                    case 8: //Grass Column Top
+                    case 9: //Grass Block Ground
+                    case 10: //Grass Block Left Edge
+                    case 11: //Grass Block Left Edge Merge
+                    case 12: //Grass Block Left Merge
+                    case 13: //Grass Block Left Side
+                    case 14: //Grass Block Right Edge
+                    case 15: //Grass Block Right Edge Merge
+                    case 16: //Grass Block Right Merge
+                    case 17: //Grass Block Right Side
                         if (!blocks.containsKey(mappedId))
                         {
                             blocks.put(mappedId, new Block(graphicsMap.get(mappedId)));
                         }
                         break;
                     //Test Enemy
-                    case 17:
+                    case 18:
                         addEnemy(new Enemy(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, 3, Enemy.MOVING_RIGHT, graphicsMap.get(mappedId)));
                         break;
                     //LevelManager block
-                    case 18:
+                    case 19:
                         addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_LEVEL, graphicsMap.get(mappedId)));
                         break;
                     //Default
