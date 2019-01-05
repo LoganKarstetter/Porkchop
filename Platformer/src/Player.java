@@ -1,13 +1,13 @@
 import java.awt.*;
 import java.util.HashMap;
 
-public class Player extends Entity
+public class Player extends Entity implements AnimationWatcher
 {
     private static final int MAX_JUMPING_UPDATES = 14;
     private int numOfJumpingUpdates;
     private InputComponent inputComponent;
     private LevelWatcher levelWatcher;
-    private boolean hopOnDeath;
+    private boolean waitingForAnimation;
 
     public Player(int x, int y, int speedInPixels, int defaultGraphicsState,
                   HashMap<Integer, Animation> playerSpecificGraphics, InputComponent playerInputComponent)
@@ -17,7 +17,7 @@ public class Player extends Entity
         numOfJumpingUpdates = 0;
         elapsedAnimationTimeInMs = 0L;
         lastDirectionMoved = Entity.RIGHT;
-        hopOnDeath = false;
+        waitingForAnimation = false;
 
         //Store player data
         speed = speedInPixels;
@@ -56,7 +56,6 @@ public class Player extends Entity
                 else //Kill the player
                 {
                     state = DEAD_STATE;
-                    hopOnDeath = true;
                 }
             }
         }
@@ -66,7 +65,7 @@ public class Player extends Entity
     {
         for (int i = 0; i < numEventBlocks; i++)
         {
-            if (checkCollision(eventBlocks[i].getBoundingBox(), 10))
+            if (checkCollision(eventBlocks[i].getBoundingBox(), 45))
             {
                 //Perform various actions depending on the block type
                 if (eventBlocks[i].getBlockType() == EventBlock.BLOCK_LEVEL)
@@ -80,7 +79,6 @@ public class Player extends Entity
                 {
                     //Kill the player
                     state = DEAD_STATE;
-                    hopOnDeath = true;
                 }
             }
         }
@@ -213,37 +211,26 @@ public class Player extends Entity
         }
         else if (state == DEAD_STATE)
         {
-            //Death animation
+            //Wait for the death animation to finish before re-spawning
             if (lastDirectionMoved == Entity.RIGHT)
             {
-                setGraphicsState(Entity.DYING_RIGHT_GRAPHICS);
+                //If the graphic state changed, this is the first update where the player
+                //is in the dead state. Set the waiting for animation flag here.
+                if (setGraphicsState(Entity.DYING_RIGHT_GRAPHICS))
+                {
+                    waitingForAnimation = true;
+                }
             }
             else
             {
-                setGraphicsState(Entity.DYING_LEFT_GRAPHICS);
+                if (setGraphicsState(Entity.DYING_LEFT_GRAPHICS))
+                {
+                    waitingForAnimation = true;
+                }
             }
             changeRibbonScrollDirection(ribbons, numRibbons, Ribbon.SCROLL_STILL);
 
-            //Do a little jump then fall out of the map
-            if (hopOnDeath)
-            {
-                if (numOfJumpingUpdates < MAX_JUMPING_UPDATES/2)
-                {
-                    boundingBox.y += (-speed);
-                    numOfJumpingUpdates++;
-                }
-                else //Fall until not longer visible, then respawn
-                {
-                    boundingBox.y += speed;
-                    if (boundingBox.y > (blockMap[0].length * Block.BLOCK_HEIGHT))
-                    {
-                        //Once the hop is done, reset data
-                        hopOnDeath = false;
-                    }
-                }
-            }
-
-            if (!hopOnDeath)
+            if (!waitingForAnimation)
             {
                 state = NORMAL_STATE;
                 numOfJumpingUpdates = 0;
@@ -251,7 +238,6 @@ public class Player extends Entity
                 setGraphicsState(Entity.IDLE_RIGHT_GRAPHICS);
                 resetRibbons(ribbons, numRibbons);
                 resetEnemies(enemies, numEnemies);
-
             }
         }
     }
@@ -284,11 +270,19 @@ public class Player extends Entity
 
     public void draw(Graphics dbGraphics, int xOffset, int yOffset)
     {
-        graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset, elapsedAnimationTimeInMs);
+        graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset);
     }
 
     public void setLevelWatcher(LevelWatcher gameLevelWatcher)
     {
         levelWatcher = gameLevelWatcher;
+    }
+
+    public void animationHasEnded()
+    {
+        if (waitingForAnimation)
+        {
+            waitingForAnimation = false;
+        }
     }
 }

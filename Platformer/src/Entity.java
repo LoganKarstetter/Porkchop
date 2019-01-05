@@ -230,14 +230,16 @@ public abstract class Entity
         state = newState;
     }
 
-    final protected void setGraphicsState(int newGraphicsState)
+    final protected boolean setGraphicsState(int newGraphicsState)
     {
-        //Change if new state is different
+        //Change if new state is different, return true if the state changed
         if (graphicsState != newGraphicsState)
         {
             graphicsState = newGraphicsState;
             elapsedAnimationTimeInMs = 0L;
+            return true;
         }
+        return false;
     }
 
     final protected void setSpawnPosition(int newX, int newY)

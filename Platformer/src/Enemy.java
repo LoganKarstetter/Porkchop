@@ -141,7 +141,7 @@ public class Enemy extends Entity
     {
         if (state != DEAD_STATE)
         {
-            graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset, elapsedAnimationTimeInMs);
+            graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset);
         }
     }
 }

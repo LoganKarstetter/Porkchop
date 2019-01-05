@@ -4,6 +4,13 @@ Serpent Body.png
 
 //Events
 Level Complete Sign.png
+Grass Block Spike Base.png
+Carrot.png
+Golden Carrot.png
+
+//Icons
+Pig Life Icon.png
+Carrot Icon.png
 
 //Ribbon
 Platformer Ribbon.png
@@ -11,8 +18,11 @@ Platformer Ribbon.png
 //Pig
 Pig Left.png
 Pig Right.png
+Pig Dead Left.png
+Pig Dead Right.png
 [Pig Walk Left: Pig Left Walk 1.png, Pig Left Walk 2.png]
 [Pig Walk Right: Pig Right Walk 1.png, Pig Right Walk 2.png]
+[Smoke Puff: Smoke Puff 1.png, Smoke Puff 2.png, Smoke Puff 3.png, Smoke Puff 4.png, Smoke Puff 5.png, Smoke Puff 6.png, Smoke Puff 7.png, Smoke Puff 8.png, Smoke Puff 9.png, Blank Image.png]
 
 //Grass terrain
 Grass Block.png
@@ -31,4 +41,8 @@ Grass Block Right Edge.png
 Grass Block Right Edge Merge.png
 Grass Block Right Merge.png
 Grass Block Right Side.png
-
+Grass Block Cavern Ceiling.png
+Grass Block Cavern Ceiling Column.png
+Grass Block Cavern Lower Left.png
+Grass Block Cavern Lower Right.png
+Grass Block Spike Top.png
