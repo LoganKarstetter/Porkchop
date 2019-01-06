@@ -13,6 +13,11 @@ public class Game implements LevelWatcher
     public static final int MAX_EVENT_BLOCKS = 10;
     public static final int MAX_RIBBONS = 3;
 
+    public static final int MAIN_MENU = 0;
+    public static final int PLAYING_GAME = 1;
+    public static final int FINAL_MENU = 2;
+    private int gameState;
+
     private ImageManager imageManager;
     private MidiManager midiManager;
     private SoundManager soundManager;
@@ -50,6 +55,9 @@ public class Game implements LevelWatcher
         soundManager = new SoundManager("SoundsConfig.txt");
         gameCamera = new GameCamera(Block.BLOCK_WIDTH * levelMaps.get(currentLevel).length,
                                     Block.BLOCK_HEIGHT * levelMaps.get(currentLevel)[0].length);
+
+        //Set the state to the main menu
+        gameState = MAIN_MENU;
 
         //Initialize the first level
         initializeLevel(playerInputComponent);
@@ -279,68 +287,93 @@ public class Game implements LevelWatcher
 
     public void update(long loopPeriodInNanos)
     {
-        //Update the player and use its new location to update the game camera
-        Point playerLocation = player.update(levelMaps.get(currentLevel), enemies, numEnemies, eventBlocks, numEventBlocks,
-                ribbons, numRibbons,loopPeriodInNanos / 1000000);
-        gameCamera.update(playerLocation);
+        //Update the game according to the gameState
+        if (gameState == MAIN_MENU)
+        {
 
-        //Update the enemies, blocks, and ribbons
-        for (Map.Entry<Integer, Block> entry : blocks.entrySet())
-        {
-            entry.getValue().update(loopPeriodInNanos / 1000000);
         }
-        for (int i = 0; i < numEnemies; i++)
+        else if (gameState == PLAYING_GAME)
         {
-            enemies[i].update(levelMaps.get(currentLevel), loopPeriodInNanos / 1000000);
+            //Update the player and use its new location to update the game camera
+            Point playerLocation = player.update(levelMaps.get(currentLevel), enemies, numEnemies, eventBlocks, numEventBlocks,
+                    ribbons, numRibbons,loopPeriodInNanos / 1000000);
+            gameCamera.update(playerLocation);
+
+            //Update the enemies, blocks, and ribbons
+            for (Map.Entry<Integer, Block> entry : blocks.entrySet())
+            {
+                entry.getValue().update(loopPeriodInNanos / 1000000);
+            }
+            for (int i = 0; i < numEnemies; i++)
+            {
+                enemies[i].update(levelMaps.get(currentLevel), loopPeriodInNanos / 1000000);
+            }
+            for (int i = 0; i < numEventBlocks; i++)
+            {
+                eventBlocks[i].update(loopPeriodInNanos / 1000000);
+            }
+            for (int i = 0; i < numRibbons; i++)
+            {
+                ribbons[i].update();
+            }
         }
-        for (int i = 0; i < numEventBlocks; i++)
+        else //Final menu game state
         {
-            eventBlocks[i].update(loopPeriodInNanos / 1000000);
-        }
-        for (int i = 0; i < numRibbons; i++)
-        {
-            ribbons[i].update();
+
         }
     }
 
     public void draw(Graphics dbGraphics)
     {
-        gameCamera.draw(dbGraphics, levelMaps.get(currentLevel), blocks, enemies, numEnemies, player, eventBlocks, numEventBlocks,
-                ribbons, numRibbons);
-
-        //Draw the game header
-        dbGraphics.drawImage(imageManager.getImages("Platformer Header").get(0), 0, 0, null);
-
-        //Draw the number of carrots collected
-        int carrotOffset = 112; //x position to draw first digit
-        for (int i = 2; i >= 0; i--)
+        //Draw the game according to the gameState
+        if (gameState == MAIN_MENU)
         {
-            //If i is zero, always draw. Otherwise, make sure we don't draw leading zeros
-            if (i == 0 || (numCarrotsValues[i] != 0 || (i != 2 && numCarrotsValues[i + 1] != 0)))
+            //Draw the main menu image
+            dbGraphics.drawImage(imageManager.getImages("Main Menu").get(0), 0, 0, null);
+        }
+        else if (gameState == PLAYING_GAME)
+        {
+            gameCamera.draw(dbGraphics, levelMaps.get(currentLevel), blocks, enemies, numEnemies, player, eventBlocks, numEventBlocks,
+                    ribbons, numRibbons);
+
+            //Draw the game header
+            dbGraphics.drawImage(imageManager.getImages("Platformer Header").get(0), 0, 0, null);
+
+            //Draw the number of carrots collected
+            int carrotOffset = 112; //x position to draw first digit
+            for (int i = 2; i >= 0; i--)
             {
-                dbGraphics.drawImage(imageManager.getImages("Numbers").get(numCarrotsValues[i]), carrotOffset, 0, null);
-                carrotOffset += 9;
+                //If i is zero, always draw. Otherwise, make sure we don't draw leading zeros
+                if (i == 0 || (numCarrotsValues[i] != 0 || (i != 2 && numCarrotsValues[i + 1] != 0)))
+                {
+                    dbGraphics.drawImage(imageManager.getImages("Numbers").get(numCarrotsValues[i]), carrotOffset, 0, null);
+                    carrotOffset += 9;
+                }
+            }
+
+            //Draw the player's lives onto the header
+            int livesOffset = 490; //x position to draw first pig life icon
+            for (int i = 0; i < numPlayerLives; i++)
+            {
+                dbGraphics.drawImage(imageManager.getImages("Pig Life Icon").get(0), livesOffset, 0, null);
+                livesOffset += 22;
+            }
+
+            //Draw the sound and music disabled symbols if necessary
+            if (musicDisabled)
+            {
+                dbGraphics.drawImage(imageManager.getImages("Music Symbol Disabled").get(0),
+                        GamePanel.WIDTH - imageManager.getImages("Music Symbol Disabled").get(0).getWidth(), 0, null);
+            }
+            if (soundDisabled) //Add two to the sound disabled symbol so that it overlaps with the music symbol correctly
+            {
+                dbGraphics.drawImage(imageManager.getImages("Sound Symbol Disabled").get(0),
+                        GamePanel.WIDTH - (imageManager.getImages("Sound Symbol Disabled").get(0).getWidth() * 2) + 2, 0, null);
             }
         }
+        else //Final menu game state
+        {
 
-        //Draw the player's lives onto the header
-        int livesOffset = 490; //x position to draw first pig life icon
-        for (int i = 0; i < numPlayerLives; i++)
-        {
-            dbGraphics.drawImage(imageManager.getImages("Pig Life Icon").get(0), livesOffset, 0, null);
-            livesOffset += 22;
-        }
-
-        //Draw the sound and music disabled symbols if necessary
-        if (musicDisabled)
-        {
-            dbGraphics.drawImage(imageManager.getImages("Music Symbol Disabled").get(0),
-                    GamePanel.WIDTH - imageManager.getImages("Music Symbol Disabled").get(0).getWidth(), 0, null);
-        }
-        if (soundDisabled) //Add two to the sound disabled symbol so that it overlaps with the music symbol correctly
-        {
-            dbGraphics.drawImage(imageManager.getImages("Sound Symbol Disabled").get(0),
-                    GamePanel.WIDTH - (imageManager.getImages("Sound Symbol Disabled").get(0).getWidth() * 2) + 2, 0, null);
         }
     }
 

@@ -18,6 +18,9 @@ Music Symbol Disabled.png
 //Ribbon
 Platformer Ribbon.png
 
+//Menu
+Main Menu.png
+
 //Pig
 Pig Left.png
 Pig Right.png
