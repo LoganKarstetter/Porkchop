@@ -25,6 +25,7 @@ public abstract class Entity
 
     protected int speed;
     protected long elapsedAnimationTimeInMs;
+    protected boolean waitingForAnimation;
     protected Point spawnPoint;
     protected Rectangle boundingBox;
     protected HashMap<Integer, Animation> graphicsMap;

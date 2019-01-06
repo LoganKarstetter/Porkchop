@@ -1,12 +1,13 @@
 import java.awt.*;
 import java.util.HashMap;
 
-public class Enemy extends Entity
+public class Enemy extends Entity implements AnimationWatcher
 {
     public static final int NOT_MOVING = 0;
     public static final int MOVING_LEFT = 1;
     public static final int MOVING_RIGHT = 2;
     private int direction;
+    private boolean isActive;
 
     public Enemy(int x, int y, int speedInPixels, int directionToMove,
                  HashMap<Integer, Animation> enemySpecificGraphics)
@@ -19,6 +20,8 @@ public class Enemy extends Entity
         speed = speedInPixels;
         direction = directionToMove;
         graphicsMap = enemySpecificGraphics;
+        waitingForAnimation = false;
+        isActive = true;
 
         determineGraphicsFromDirection();
         boundingBox = new Rectangle(x, y, graphicsMap.get(graphicsState).getImageWidth(), graphicsMap.get(graphicsState).getImageHeight());
@@ -29,8 +32,11 @@ public class Enemy extends Entity
 
     public void update(int[][] blockMap,long loopPeriodInMs)
     {
-        elapsedAnimationTimeInMs = graphicsMap.get(graphicsState).update(loopPeriodInMs, elapsedAnimationTimeInMs);
-        move(blockMap);
+        if (isActive)
+        {
+            elapsedAnimationTimeInMs = graphicsMap.get(graphicsState).update(loopPeriodInMs, elapsedAnimationTimeInMs);
+            move(blockMap);
+        }
     }
 
     private void move(int[][] blockMap)
@@ -103,13 +109,29 @@ public class Enemy extends Entity
         }
         else if (state == DEAD_STATE)
         {
-            if (direction == MOVING_RIGHT)
+            //Wait for the death animation to finish before re-spawning
+            if (lastDirectionMoved == Entity.RIGHT)
             {
-                setGraphicsState(Entity.DYING_RIGHT_GRAPHICS);
+                //If the graphic state changed, this is the first update where the player
+                //is in the dead state. Set the waiting for animation flag here.
+                if (setGraphicsState(Entity.DYING_RIGHT_GRAPHICS))
+                {
+                    waitingForAnimation = true;
+                }
             }
             else
             {
-                setGraphicsState(Entity.DYING_LEFT_GRAPHICS);
+                if (setGraphicsState(Entity.DYING_LEFT_GRAPHICS))
+                {
+                    waitingForAnimation = true;
+                }
+            }
+
+            //If the enemy is no longer waiting for an animation, set it to inactive
+            if (!waitingForAnimation)
+            {
+                isActive = false;
+                graphicsMap.get(graphicsState).resetAnimation();
             }
         }
     }
@@ -133,15 +155,21 @@ public class Enemy extends Entity
 
     public void reset()
     {
+        isActive = true;
         state = NORMAL_STATE;
         boundingBox.setLocation(spawnPoint);
     }
 
     public void draw(Graphics dbGraphics, int xOffset, int yOffset)
     {
-        if (state != DEAD_STATE)
+        graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset);
+    }
+
+    public void animationHasEnded()
+    {
+        if (waitingForAnimation)
         {
-            graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset);
+            waitingForAnimation = false;
         }
     }
 }

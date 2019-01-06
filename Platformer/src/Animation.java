@@ -38,15 +38,11 @@ public class Animation
             //Update the image position
             imagePosition = (int) (localElapsedTimeInMs / imageDurationInMs);
         }
-        else //Inform the watcher that the animation ended and reset the animation
+        else //Inform the watcher that the animation ended
         {
-            if (watcher != null)
-            {
+            if (watcher != null) {
                 watcher.animationHasEnded();
             }
-
-            //Reset the image position, it is assumed the graphics state will change before the next update
-            imagePosition = 0;
         }
 
         //Return updated local elapsed time
@@ -57,6 +53,12 @@ public class Animation
     {
         //Draw the animation
         dbGraphics.drawImage(images.get(imagePosition), x, y, null);
+    }
+
+    public void resetAnimation()
+    {
+        //Reset the image position, it is assumed the graphics state will change before the next update
+        imagePosition = 0;
     }
 
     public void setWatcher(AnimationWatcher animationWatcher)

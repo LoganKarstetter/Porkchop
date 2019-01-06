@@ -7,7 +7,6 @@ public class Player extends Entity implements AnimationWatcher
     private int numOfJumpingUpdates;
     private InputComponent inputComponent;
     private LevelWatcher levelWatcher;
-    private boolean waitingForAnimation;
 
     public Player(int x, int y, int speedInPixels, int defaultGraphicsState,
                   HashMap<Integer, Animation> playerSpecificGraphics, InputComponent playerInputComponent)
@@ -65,7 +64,7 @@ public class Player extends Entity implements AnimationWatcher
     {
         for (int i = 0; i < numEventBlocks; i++)
         {
-            if (checkCollision(eventBlocks[i].getBoundingBox(), 45))
+            if (checkCollision(eventBlocks[i].getBoundingBox(), 30))
             {
                 //Perform various actions depending on the block type
                 if (eventBlocks[i].getBlockType() == EventBlock.BLOCK_LEVEL)
@@ -79,6 +78,12 @@ public class Player extends Entity implements AnimationWatcher
                 {
                     //Kill the player
                     state = DEAD_STATE;
+                }
+                else if (eventBlocks[i].getBlockType() == EventBlock.BLOCK_COLLECT)
+                {
+                    //Inform the game that an item was collected
+                    eventBlocks[i].activate();
+                    levelWatcher.itemCollected();
                 }
             }
         }
@@ -219,6 +224,7 @@ public class Player extends Entity implements AnimationWatcher
                 if (setGraphicsState(Entity.DYING_RIGHT_GRAPHICS))
                 {
                     waitingForAnimation = true;
+                    levelWatcher.playerHasDied(); //Inform the game the player has died
                 }
             }
             else
@@ -226,6 +232,7 @@ public class Player extends Entity implements AnimationWatcher
                 if (setGraphicsState(Entity.DYING_LEFT_GRAPHICS))
                 {
                     waitingForAnimation = true;
+                    levelWatcher.playerHasDied();
                 }
             }
             changeRibbonScrollDirection(ribbons, numRibbons, Ribbon.SCROLL_STILL);
@@ -235,6 +242,7 @@ public class Player extends Entity implements AnimationWatcher
                 state = NORMAL_STATE;
                 numOfJumpingUpdates = 0;
                 boundingBox.setLocation(spawnPoint);
+                graphicsMap.get(graphicsState).resetAnimation();
                 setGraphicsState(Entity.IDLE_RIGHT_GRAPHICS);
                 resetRibbons(ribbons, numRibbons);
                 resetEnemies(enemies, numEnemies);
@@ -273,16 +281,16 @@ public class Player extends Entity implements AnimationWatcher
         graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset);
     }
 
-    public void setLevelWatcher(LevelWatcher gameLevelWatcher)
-    {
-        levelWatcher = gameLevelWatcher;
-    }
-
     public void animationHasEnded()
     {
         if (waitingForAnimation)
         {
             waitingForAnimation = false;
         }
+    }
+
+    public void setLevelWatcher(LevelWatcher gameLevelWatcher)
+    {
+        levelWatcher = gameLevelWatcher;
     }
 }

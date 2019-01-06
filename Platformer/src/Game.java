@@ -30,6 +30,11 @@ public class Game implements LevelWatcher
     private int numEventBlocks;
     private int numRibbons;
     private int currentLevel;
+    private int numCarrotsCollected;
+    private int[] numCarrotsValues;
+    private int numPlayerLives;
+    private boolean soundDisabled;
+    private boolean musicDisabled;
 
 
     public Game(String levelsFilePath, InputComponent playerInputComponent)
@@ -88,6 +93,17 @@ public class Game implements LevelWatcher
                 graphicsMap.put(i, new HashMap<>());
                 graphicsMap.get(i).put(Block.NORMAL_GRAPHICS, new Animation(imageManager.getImages(grassBlocks[i - 2]), 0, false));
             }
+
+            //Set the number of carrots collected
+            numCarrotsCollected = 0;
+            numCarrotsValues = new int[3]; //Hundreds -> ones places
+
+            //Set the number of lives
+            numPlayerLives = 3;
+
+            //Enabled the sound and music
+            soundDisabled = false;
+            musicDisabled = false;
         }
         else if (currentLevel == 1)
         {
@@ -107,8 +123,8 @@ public class Game implements LevelWatcher
         graphicsMap.get(23).put(Entity.MOVE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Serpent Body"), 0, false));
         graphicsMap.get(23).put(Entity.MIDAIR_LEFT_GRAPHICS,  new Animation(imageManager.getImages("Serpent Body"), 0, false));
         graphicsMap.get(23).put(Entity.MIDAIR_RIGHT_GRAPHICS, new Animation(imageManager.getImages("Serpent Body"), 0, false));
-        graphicsMap.get(23).put(Entity.DYING_LEFT_GRAPHICS,   new Animation(imageManager.getImages("Serpent Body"), 0, false));
-        graphicsMap.get(23).put(Entity.DYING_RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(23).put(Entity.DYING_LEFT_GRAPHICS,   new Animation(imageManager.getImages("Smoke Puff"), 500, false));
+        graphicsMap.get(23).put(Entity.DYING_RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Smoke Puff"), 500, false));
 
         //Level transition event block
         graphicsMap.put(24, new HashMap<>());
@@ -120,11 +136,11 @@ public class Game implements LevelWatcher
 
         //Carrot event block
         graphicsMap.put(26, new HashMap<>());
-        graphicsMap.get(26).put(Block.NORMAL_GRAPHICS,  new Animation(imageManager.getImages("Carrot"), 0, false));
+        graphicsMap.get(26).put(Block.NORMAL_GRAPHICS,  new Animation(imageManager.getImages("Carrot"), 1200, true));
 
         //Golden Carrot event block
         graphicsMap.put(27, new HashMap<>());
-        graphicsMap.get(27).put(Block.NORMAL_GRAPHICS,  new Animation(imageManager.getImages("Golden Carrot"), 0, false));
+        graphicsMap.get(27).put(Block.NORMAL_GRAPHICS,  new Animation(imageManager.getImages("Golden Carrot"), 1200, true));
 
         //Define the ribbon(s)
         addRibbon(new Ribbon(imageManager.getImages("Platformer Ribbon").get(0), Ribbon.SCROLL_STILL, 2));
@@ -184,7 +200,12 @@ public class Game implements LevelWatcher
                         }
                         break;
                     case 23: //Test Enemy
-                        addEnemy(new Enemy(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, 3, Enemy.MOVING_RIGHT, graphicsMap.get(mappedId)));
+                        if ( addEnemy(new Enemy(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, 3, Enemy.MOVING_RIGHT, graphicsMap.get(mappedId))))
+                        {
+                            //Add the animation watcher if the enemy is successfully added
+                            graphicsMap.get(mappedId).get(Entity.DYING_LEFT_GRAPHICS).setWatcher(enemies[numEnemies]);
+                            graphicsMap.get(mappedId).get(Entity.DYING_RIGHT_GRAPHICS).setWatcher(enemies[numEnemies]);
+                        }
                         break;
                     case 24: //LevelManager block
                         addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_LEVEL, graphicsMap.get(mappedId)));
@@ -193,10 +214,10 @@ public class Game implements LevelWatcher
                         addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_DANGER, graphicsMap.get(mappedId)));
                         break;
                     case 26: //Carrot
-                        addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_EMPTY, graphicsMap.get(mappedId)));
+                        addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_COLLECT, graphicsMap.get(mappedId)));
                         break;
                     case 27: //Golden Carrot
-                        addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_EMPTY, graphicsMap.get(mappedId)));
+                        addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_COLLECT, graphicsMap.get(mappedId)));
                         break;
                     default: //Default
                         System.out.println("No definition found for id = " + mappedId);
@@ -206,6 +227,7 @@ public class Game implements LevelWatcher
         }
     }
 
+    @Override
     public void changeToNextLevel()
     {
         //Increment the level number and check if the game has ended
@@ -218,6 +240,40 @@ public class Game implements LevelWatcher
         else
         {
             //TODO: Game completed
+        }
+    }
+
+    @Override
+    public void itemCollected()
+    {
+        //Increment the number of carrots collected
+        numCarrotsCollected++;
+
+        if (numCarrotsCollected < 1000)
+        {
+            //Determine the values in the hundreds, tens, and ones places
+            numCarrotsValues[2] = numCarrotsCollected/100 % 10; //Hundreds
+            numCarrotsValues[1] = numCarrotsCollected/10 % 10; //Tens
+            numCarrotsValues[0] = numCarrotsCollected % 10; //Ones
+        }
+        else //We've got too many carrots
+        {
+            numCarrotsValues[2] = 9; //Hundreds
+            numCarrotsValues[1] = 9; //Tens
+            numCarrotsValues[0] = 9; //Ones
+        }
+    }
+
+    @Override
+    public void playerHasDied()
+    {
+        //Subtract a life
+        numPlayerLives--;
+
+        //If the player has lost all its lives, game over
+        if (numPlayerLives < 0)
+        {
+            //TODO: Game over
         }
     }
 
@@ -252,11 +308,40 @@ public class Game implements LevelWatcher
         gameCamera.draw(dbGraphics, levelMaps.get(currentLevel), blocks, enemies, numEnemies, player, eventBlocks, numEventBlocks,
                 ribbons, numRibbons);
 
-        //Draw the game icons
-        dbGraphics.drawImage(imageManager.getImages("Carrot Icon").get(0), 0, 0, null);
-        dbGraphics.drawImage(imageManager.getImages("Pig Life Icon").get(0), GamePanel.WIDTH - imageManager.getImages("Pig Life Icon").get(0).getWidth(), 0, null);
-        dbGraphics.drawImage(imageManager.getImages("Pig Life Icon").get(0), GamePanel.WIDTH - imageManager.getImages("Pig Life Icon").get(0).getWidth() * 2, 0, null);
-        dbGraphics.drawImage(imageManager.getImages("Pig Life Icon").get(0), GamePanel.WIDTH - imageManager.getImages("Pig Life Icon").get(0).getWidth() * 3, 0, null);
+        //Draw the game header
+        dbGraphics.drawImage(imageManager.getImages("Platformer Header").get(0), 0, 0, null);
+
+        //Draw the number of carrots collected
+        int carrotOffset = 112; //x position to draw first digit
+        for (int i = 2; i >= 0; i--)
+        {
+            //If i is zero, always draw. Otherwise, make sure we don't draw leading zeros
+            if (i == 0 || (numCarrotsValues[i] != 0 || (i != 2 && numCarrotsValues[i + 1] != 0)))
+            {
+                dbGraphics.drawImage(imageManager.getImages("Numbers").get(numCarrotsValues[i]), carrotOffset, 0, null);
+                carrotOffset += 9;
+            }
+        }
+
+        //Draw the player's lives onto the header
+        int livesOffset = 490; //x position to draw first pig life icon
+        for (int i = 0; i < numPlayerLives; i++)
+        {
+            dbGraphics.drawImage(imageManager.getImages("Pig Life Icon").get(0), livesOffset, 0, null);
+            livesOffset += 22;
+        }
+
+        //Draw the sound and music disabled symbols if necessary
+        if (musicDisabled)
+        {
+            dbGraphics.drawImage(imageManager.getImages("Music Symbol Disabled").get(0),
+                    GamePanel.WIDTH - imageManager.getImages("Music Symbol Disabled").get(0).getWidth(), 0, null);
+        }
+        if (soundDisabled) //Add two to the sound disabled symbol so that it overlaps with the music symbol correctly
+        {
+            dbGraphics.drawImage(imageManager.getImages("Sound Symbol Disabled").get(0),
+                    GamePanel.WIDTH - (imageManager.getImages("Sound Symbol Disabled").get(0).getWidth() * 2) + 2, 0, null);
+        }
     }
 
     private ArrayList<int[][]> loadGameLevels(String filePath)

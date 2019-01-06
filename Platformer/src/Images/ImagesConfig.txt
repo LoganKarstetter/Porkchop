@@ -5,12 +5,15 @@ Serpent Body.png
 //Events
 Level Complete Sign.png
 Grass Block Spike Base.png
-Carrot.png
-Golden Carrot.png
+[Carrot: Carrot 1.png, Carrot 2.png, Carrot 3.png, Carrot 4.png, Carrot 5.png, Carrot 4.png, Carrot 3.png, Carrot 2.png]
+[Golden Carrot: Golden Carrot 1.png, Golden Carrot 2.png, Golden Carrot 3.png, Golden Carrot 4.png, Golden Carrot 5.png, Golden Carrot 4.png, Golden Carrot 3.png, Golden Carrot 2.png]
 
 //Icons
+Platformer Header.png
 Pig Life Icon.png
-Carrot Icon.png
+Sound Symbol Disabled.png
+Music Symbol Disabled.png
+[Numbers: Zero.png, One.png, Two.png, Three.png, Four.png, Five.png, Six.png, Seven.png, Eight.png, Nine.png]
 
 //Ribbon
 Platformer Ribbon.png

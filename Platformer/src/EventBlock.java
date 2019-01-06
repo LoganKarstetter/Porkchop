@@ -3,10 +3,10 @@ import java.util.HashMap;
 
 public class EventBlock extends Block
 {
-    public static final int BLOCK_EMPTY = 0;
-    public static final int BLOCK_SOLID = 1;
-    public static final int BLOCK_LEVEL = 2;
-    public static final int BLOCK_DANGER = 3;
+    public static final int BLOCK_INACTIVE = 0;
+    public static final int BLOCK_LEVEL = 1;
+    public static final int BLOCK_DANGER = 2;
+    public static final int BLOCK_COLLECT = 3;
     private int blockType;
 
     private Rectangle boundingBox;
@@ -20,7 +20,20 @@ public class EventBlock extends Block
 
     public void draw(Graphics dbGraphics, int xOffset, int yOffset)
     {
-        graphicsMap.get(NORMAL_GRAPHICS).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset);
+        if (blockType != BLOCK_INACTIVE)
+        {
+            graphicsMap.get(NORMAL_GRAPHICS).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset);
+        }
+    }
+
+    public void activate()
+    {
+        //If a block is activated by the player, perform actions based on block type
+        if (blockType == BLOCK_COLLECT)
+        {
+            //Disable collectibles after the first interaction
+            blockType = BLOCK_INACTIVE;
+        }
     }
 
     public Rectangle getBoundingBox()
