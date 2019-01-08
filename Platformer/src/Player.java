@@ -15,7 +15,7 @@ public class Player extends Entity implements AnimationWatcher
         state = NORMAL_STATE;
         numOfJumpingUpdates = 0;
         elapsedAnimationTimeInMs = 0L;
-        lastDirectionMoved = Entity.RIGHT;
+        direction = Entity.RIGHT;
         waitingForAnimation = false;
 
         //Store player data
@@ -71,7 +71,7 @@ public class Player extends Entity implements AnimationWatcher
                 {
                     //Transition to the next level
                     state = NORMAL_STATE;
-                    levelWatcher.changeToNextLevel();
+                    levelWatcher.changeToNextLevel(inputComponent);
                     return true;
                 }
                 else if (eventBlocks[i].getBlockType() == EventBlock.BLOCK_DANGER)
@@ -115,7 +115,7 @@ public class Player extends Entity implements AnimationWatcher
                 {
                     setGraphicsState(Entity.MOVE_LEFT_GRAPHICS);
                 }
-                lastDirectionMoved = Entity.LEFT;
+                direction = Entity.LEFT;
             }
             else if (inputComponent.right)
             {
@@ -127,11 +127,11 @@ public class Player extends Entity implements AnimationWatcher
                 {
                     setGraphicsState(Entity.MOVE_RIGHT_GRAPHICS);
                 }
-                lastDirectionMoved = Entity.RIGHT;
+                direction = Entity.RIGHT;
             }
             else if (state != FALLING_STATE && state != JUMPING_STATE) //Idle
             {
-                if (lastDirectionMoved == Entity.RIGHT)
+                if (direction == Entity.RIGHT)
                 {
                     setGraphicsState(Entity.IDLE_RIGHT_GRAPHICS);
                 }
@@ -156,26 +156,12 @@ public class Player extends Entity implements AnimationWatcher
                 {
                     moveVertical(blockMap, -speed);
                     numOfJumpingUpdates++;
-                    if (lastDirectionMoved == Entity.RIGHT)
-                    {
-                        setGraphicsState(Entity.MIDAIR_RIGHT_GRAPHICS);
-                    }
-                    else
-                    {
-                        setGraphicsState(Entity.MIDAIR_LEFT_GRAPHICS);
-                    }
+                    setGraphicsState(state, direction, false);
                 }
             }
             else if (state == FALLING_STATE) //Started falling
             {
-                if (lastDirectionMoved == Entity.RIGHT)
-                {
-                    setGraphicsState(Entity.MIDAIR_RIGHT_GRAPHICS);
-                }
-                else
-                {
-                    setGraphicsState(Entity.MIDAIR_LEFT_GRAPHICS);
-                }
+                setGraphicsState(state, direction, false);
             }
         }
         else if (state == JUMPING_STATE)
@@ -189,14 +175,7 @@ public class Player extends Entity implements AnimationWatcher
             else //Max height reached
             {
                 state = FALLING_STATE;
-                if (lastDirectionMoved == Entity.RIGHT)
-                {
-                    setGraphicsState(Entity.MIDAIR_RIGHT_GRAPHICS);
-                }
-                else
-                {
-                    setGraphicsState(Entity.MIDAIR_LEFT_GRAPHICS);
-                }
+                setGraphicsState(state, direction, false);
             }
         }
         else if (state == FALLING_STATE)
@@ -204,41 +183,25 @@ public class Player extends Entity implements AnimationWatcher
             //Clear jumping update counter
             numOfJumpingUpdates = 0;
             moveVertical(blockMap, speed);
-
-            if (lastDirectionMoved == Entity.RIGHT)
-            {
-                setGraphicsState(Entity.MIDAIR_RIGHT_GRAPHICS);
-            }
-            else
-            {
-                setGraphicsState(Entity.MIDAIR_LEFT_GRAPHICS);
-            }
+            setGraphicsState(state, direction, false);
         }
         else if (state == DEAD_STATE)
         {
             //Wait for the death animation to finish before re-spawning
-            if (lastDirectionMoved == Entity.RIGHT)
+            //If the graphic state changed, this is the first update where the player
+            //is in the dead state. Set the waiting for animation flag here.
+            if (setGraphicsState(state, direction, false))
             {
-                //If the graphic state changed, this is the first update where the player
-                //is in the dead state. Set the waiting for animation flag here.
-                if (setGraphicsState(Entity.DYING_RIGHT_GRAPHICS))
-                {
-                    waitingForAnimation = true;
-                    levelWatcher.playerHasDied(); //Inform the game the player has died
-                }
-            }
-            else
-            {
-                if (setGraphicsState(Entity.DYING_LEFT_GRAPHICS))
-                {
-                    waitingForAnimation = true;
-                    levelWatcher.playerHasDied();
-                }
+                waitingForAnimation = true;
             }
             changeRibbonScrollDirection(ribbons, numRibbons, Ribbon.SCROLL_STILL);
 
             if (!waitingForAnimation)
             {
+                //Inform the game the player has died
+                levelWatcher.playerHasDied(inputComponent);
+
+                //Reset player data
                 state = NORMAL_STATE;
                 numOfJumpingUpdates = 0;
                 boundingBox.setLocation(spawnPoint);

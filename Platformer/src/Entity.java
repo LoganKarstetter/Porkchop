@@ -19,9 +19,10 @@ public abstract class Entity
     protected static final int DEAD_STATE = 3;
     protected int state;
 
-    protected static final boolean RIGHT = true;
-    protected static final boolean LEFT = false;
-    protected boolean lastDirectionMoved;
+    public static final int STILL = 0;
+    public static final int LEFT = 1;
+    public static final int RIGHT = 2;
+    protected int direction;
 
     protected int speed;
     protected long elapsedAnimationTimeInMs;
@@ -231,9 +232,17 @@ public abstract class Entity
         state = newState;
     }
 
+    /**
+     * Set the graphics state of an entity. This method takes the value
+     * representing the new state directly. If the new graphics state
+     * is not the same as the existing one, this method will reset
+     * the elapsed animation time to zero and set the new state.
+     * @param newGraphicsState The new graphics state.
+     * @return True if the state changed, false otherwise.
+     */
     final protected boolean setGraphicsState(int newGraphicsState)
     {
-        //Change if new state is different, return true if the state changed
+        //Reset animation timer and return true if the state changed
         if (graphicsState != newGraphicsState)
         {
             graphicsState = newGraphicsState;
@@ -241,6 +250,39 @@ public abstract class Entity
             return true;
         }
         return false;
+    }
+
+    /**
+     * Set the graphics state based off the current entity state, the last moved direction,
+     * and whether or not the entity is currently moving left or right (walking).
+     * @param state The current state of the entity.
+     * @param lastDirection The last moved direction of the entity.
+     * @param isMoving A flag specifying whether the entity is moving left or right.
+     * @return True if the graphics state changed, false otherwise.
+     */
+    final protected boolean setGraphicsState(int state, int lastDirection, boolean isMoving)
+    {
+        //Determine the new graphics state
+        int newGraphicsState;
+        if (state == NORMAL_STATE && !isMoving)
+        {
+            newGraphicsState = ( lastDirection == LEFT ? IDLE_LEFT_GRAPHICS : IDLE_RIGHT_GRAPHICS );
+        }
+        else if (state == NORMAL_STATE) //Is moving
+        {
+            newGraphicsState = ( lastDirection == LEFT ? MOVE_LEFT_GRAPHICS : MOVE_RIGHT_GRAPHICS );
+        }
+        else if (state == FALLING_STATE || state == JUMPING_STATE)
+        {
+            newGraphicsState = ( lastDirection == LEFT ? MIDAIR_LEFT_GRAPHICS : MIDAIR_RIGHT_GRAPHICS );
+        }
+        else //state == DEAD_STATE
+        {
+            newGraphicsState = ( lastDirection == LEFT ? DYING_LEFT_GRAPHICS : DYING_RIGHT_GRAPHICS );
+        }
+
+        //Reset animation timer and return true if the state changed
+        return setGraphicsState(newGraphicsState);
     }
 
     final protected void setSpawnPosition(int newX, int newY)

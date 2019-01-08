@@ -3,10 +3,6 @@ import java.util.HashMap;
 
 public class Enemy extends Entity implements AnimationWatcher
 {
-    public static final int NOT_MOVING = 0;
-    public static final int MOVING_LEFT = 1;
-    public static final int MOVING_RIGHT = 2;
-    private int direction;
     private boolean isActive;
 
     public Enemy(int x, int y, int speedInPixels, int directionToMove,
@@ -45,12 +41,12 @@ public class Enemy extends Entity implements AnimationWatcher
         if (state != DEAD_STATE)
         {
             //Attempt to move depending on direction
-            if (direction == MOVING_LEFT)
+            if (direction == LEFT)
             {
                 //Change direction if there was collision
                 if (moveHorizontal(blockMap, -speed))
                 {
-                    direction = MOVING_RIGHT;
+                    direction = RIGHT;
                     if (state != FALLING_STATE) //Change graphics
                     {
                         setGraphicsState(Entity.MOVE_RIGHT_GRAPHICS);
@@ -58,11 +54,11 @@ public class Enemy extends Entity implements AnimationWatcher
 
                 }
             }
-            else if (direction == MOVING_RIGHT)
+            else if (direction == RIGHT)
             {
                 if (moveHorizontal(blockMap, speed))
                 {
-                    direction = MOVING_LEFT;
+                    direction = LEFT;
                     if (state != FALLING_STATE)
                     {
                         setGraphicsState(Entity.MOVE_LEFT_GRAPHICS);
@@ -80,14 +76,7 @@ public class Enemy extends Entity implements AnimationWatcher
             //Update graphics if enemy starts falling
             if (state == FALLING_STATE)
             {
-                if (direction == MOVING_RIGHT)
-                {
-                    setGraphicsState(Entity.MIDAIR_RIGHT_GRAPHICS);
-                }
-                else
-                {
-                    setGraphicsState(Entity.MIDAIR_LEFT_GRAPHICS);
-                }
+                setGraphicsState(state, direction, false);
             }
         }
         else if (state == FALLING_STATE)
@@ -97,34 +86,17 @@ public class Enemy extends Entity implements AnimationWatcher
             //Update graphics if enemy lands
             if (state == FALLING_STATE)
             {
-                if (direction == MOVING_RIGHT)
-                {
-                    setGraphicsState(Entity.IDLE_RIGHT_GRAPHICS);
-                }
-                else
-                {
-                    setGraphicsState(Entity.IDLE_LEFT_GRAPHICS);
-                }
+                setGraphicsState(state, direction, false);
             }
         }
         else if (state == DEAD_STATE)
         {
             //Wait for the death animation to finish before re-spawning
-            if (lastDirectionMoved == Entity.RIGHT)
+            //If the graphic state changed, this is the first update where the player
+            //is in the dead state. Set the waiting for animation flag here.
+            if (setGraphicsState(state, direction, false))
             {
-                //If the graphic state changed, this is the first update where the player
-                //is in the dead state. Set the waiting for animation flag here.
-                if (setGraphicsState(Entity.DYING_RIGHT_GRAPHICS))
-                {
-                    waitingForAnimation = true;
-                }
-            }
-            else
-            {
-                if (setGraphicsState(Entity.DYING_LEFT_GRAPHICS))
-                {
-                    waitingForAnimation = true;
-                }
+                waitingForAnimation = true;
             }
 
             //If the enemy is no longer waiting for an animation, set it to inactive
@@ -139,11 +111,11 @@ public class Enemy extends Entity implements AnimationWatcher
     private void determineGraphicsFromDirection()
     {
         //Determine graphics state from direction, this initializes elapsedAnimationTimeInMs
-        if (direction == MOVING_LEFT)
+        if (direction == LEFT)
         {
             setGraphicsState(Entity.MOVE_LEFT_GRAPHICS);
         }
-        else if (direction == MOVING_RIGHT)
+        else if (direction == RIGHT)
         {
             setGraphicsState(Entity.MOVE_RIGHT_GRAPHICS);
         }

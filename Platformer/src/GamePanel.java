@@ -31,6 +31,7 @@ public class GamePanel extends JPanel implements Runnable
         //Setup game input data
         InputComponent userInputComponent = new InputComponent();
         this.addKeyListener(userInputComponent);
+        this.addMouseListener(userInputComponent);
 
         //Create game
         game = new Game("Levels/LevelsConfig.txt", userInputComponent);

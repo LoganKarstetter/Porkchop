@@ -1,4 +1,6 @@
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Game implements LevelWatcher
+public class Game implements LevelWatcher, MouseWatcher
 {
     public static final int MAX_ENEMIES = 15;
     public static final int MAX_EVENT_BLOCKS = 10;
@@ -59,6 +61,13 @@ public class Game implements LevelWatcher
         //Set the state to the main menu
         gameState = MAIN_MENU;
 
+        //Enable the sound and music
+        soundDisabled = false;
+        musicDisabled = false;
+
+        //Setup mouse event monitoring
+        playerInputComponent.setMouseWatcher(this);
+
         //Initialize the first level
         initializeLevel(playerInputComponent);
     }
@@ -108,10 +117,6 @@ public class Game implements LevelWatcher
 
             //Set the number of lives
             numPlayerLives = 3;
-
-            //Enabled the sound and music
-            soundDisabled = false;
-            musicDisabled = false;
         }
         else if (currentLevel == 1)
         {
@@ -208,7 +213,7 @@ public class Game implements LevelWatcher
                         }
                         break;
                     case 23: //Test Enemy
-                        if ( addEnemy(new Enemy(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, 3, Enemy.MOVING_RIGHT, graphicsMap.get(mappedId))))
+                        if ( addEnemy(new Enemy(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, 3, Enemy.RIGHT, graphicsMap.get(mappedId))))
                         {
                             //Add the animation watcher if the enemy is successfully added
                             graphicsMap.get(mappedId).get(Entity.DYING_LEFT_GRAPHICS).setWatcher(enemies[numEnemies]);
@@ -236,7 +241,7 @@ public class Game implements LevelWatcher
     }
 
     @Override
-    public void changeToNextLevel()
+    public void changeToNextLevel(InputComponent playerInputComponent)
     {
         //Increment the level number and check if the game has ended
         currentLevel++;
@@ -247,7 +252,11 @@ public class Game implements LevelWatcher
         }
         else
         {
-            //TODO: Game completed
+            gameState = FINAL_MENU;
+
+            //Reinitialize the first level in case the player wants to play again
+            currentLevel = 0;
+            initializeLevel(playerInputComponent);
         }
     }
 
@@ -273,7 +282,7 @@ public class Game implements LevelWatcher
     }
 
     @Override
-    public void playerHasDied()
+    public void playerHasDied(InputComponent playerInputComponent)
     {
         //Subtract a life
         numPlayerLives--;
@@ -281,18 +290,50 @@ public class Game implements LevelWatcher
         //If the player has lost all its lives, game over
         if (numPlayerLives < 0)
         {
-            //TODO: Game over
+            gameState = FINAL_MENU;
+
+            //Reinitialize the first level in case the player wants to play again
+            currentLevel = 0;
+            initializeLevel(playerInputComponent);
+        }
+    }
+
+    @Override
+    public void mouseClicked(Point mousePosition)
+    {
+        //Determine actions based on game state
+        if (gameState == MAIN_MENU || gameState == FINAL_MENU)
+        {
+            //Start/Restart button (coordinates from GIMP)
+            if (new Rectangle(218, 549, 64, 42).contains(mousePosition))
+            {
+                gameState = PLAYING_GAME;
+            }
+
+            //Quit button
+            if (new Rectangle(318, 549, 64, 42).contains(mousePosition))
+            {
+                System.exit(0);
+            }
+        }
+
+        //Sound button
+        if (new Rectangle(563, 0, 18, 19).contains(mousePosition))
+        {
+            soundDisabled = !soundDisabled;
+        }
+
+        //Music button
+        if (new Rectangle(581, 0, 18, 19).contains(mousePosition))
+        {
+            musicDisabled = !musicDisabled;
         }
     }
 
     public void update(long loopPeriodInNanos)
     {
         //Update the game according to the gameState
-        if (gameState == MAIN_MENU)
-        {
-
-        }
-        else if (gameState == PLAYING_GAME)
+        if (gameState == PLAYING_GAME)
         {
             //Update the player and use its new location to update the game camera
             Point playerLocation = player.update(levelMaps.get(currentLevel), enemies, numEnemies, eventBlocks, numEventBlocks,
@@ -316,10 +357,6 @@ public class Game implements LevelWatcher
             {
                 ribbons[i].update();
             }
-        }
-        else //Final menu game state
-        {
-
         }
     }
 
@@ -358,22 +395,23 @@ public class Game implements LevelWatcher
                 dbGraphics.drawImage(imageManager.getImages("Pig Life Icon").get(0), livesOffset, 0, null);
                 livesOffset += 22;
             }
-
-            //Draw the sound and music disabled symbols if necessary
-            if (musicDisabled)
-            {
-                dbGraphics.drawImage(imageManager.getImages("Music Symbol Disabled").get(0),
-                        GamePanel.WIDTH - imageManager.getImages("Music Symbol Disabled").get(0).getWidth(), 0, null);
-            }
-            if (soundDisabled) //Add two to the sound disabled symbol so that it overlaps with the music symbol correctly
-            {
-                dbGraphics.drawImage(imageManager.getImages("Sound Symbol Disabled").get(0),
-                        GamePanel.WIDTH - (imageManager.getImages("Sound Symbol Disabled").get(0).getWidth() * 2) + 2, 0, null);
-            }
         }
-        else //Final menu game state
+        else if (gameState == FINAL_MENU)
         {
+            //Draw the main menu image
+            dbGraphics.drawImage(imageManager.getImages("Final Menu").get(0), 0, 0, null);
+        }
 
+        //Draw the sound and music disabled symbols if necessary
+        if (musicDisabled)
+        {
+            dbGraphics.drawImage(imageManager.getImages("Music Symbol Disabled").get(0),
+                    GamePanel.WIDTH - imageManager.getImages("Music Symbol Disabled").get(0).getWidth(), 0, null);
+        }
+        if (soundDisabled) //Add two to the sound disabled symbol so that it overlaps with the music symbol correctly
+        {
+            dbGraphics.drawImage(imageManager.getImages("Sound Symbol Disabled").get(0),
+                    GamePanel.WIDTH - (imageManager.getImages("Sound Symbol Disabled").get(0).getWidth() * 2) + 2, 0, null);
         }
     }
 
@@ -487,4 +525,14 @@ public class Game implements LevelWatcher
         }
         return false;
     }
+
+    public void mouseClicked(MouseEvent e) { /* Do nothing */ }
+
+    public void mouseEntered(MouseEvent event) { /* Do nothing */ }
+
+    public void mouseExited(MouseEvent event) { /* Do nothing */ }
+
+    public void mousePressed(MouseEvent event) { /* Do nothing */ }
+
+    public void mouseReleased(MouseEvent event) { /* Do nothing */ }
 }
