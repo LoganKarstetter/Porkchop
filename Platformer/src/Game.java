@@ -1,6 +1,5 @@
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +38,10 @@ public class Game implements LevelWatcher, MouseWatcher
     private int currentLevel;
     private int numCarrotsCollected;
     private int[] numCarrotsValues;
+    private int numEnemiesDefeated;
+    private int[] numEnemiesValues;
     private int numPlayerLives;
+    private boolean goldenCarrotFound;
     private boolean soundDisabled;
     private boolean musicDisabled;
 
@@ -59,7 +61,7 @@ public class Game implements LevelWatcher, MouseWatcher
                                     Block.BLOCK_HEIGHT * levelMaps.get(currentLevel)[0].length);
 
         //Set the state to the main menu
-        gameState = MAIN_MENU;
+        gameState = FINAL_MENU;
 
         //Enable the sound and music
         soundDisabled = false;
@@ -111,12 +113,17 @@ public class Game implements LevelWatcher, MouseWatcher
                 graphicsMap.get(i).put(Block.NORMAL_GRAPHICS, new Animation(imageManager.getImages(grassBlocks[i - 2]), 0, false));
             }
 
-            //Set the number of carrots collected
+            //Set the number of carrots collected and enemies defeated
             numCarrotsCollected = 0;
             numCarrotsValues = new int[3]; //Hundreds -> ones places
+            numEnemiesDefeated = 0;
+            numEnemiesValues = new int[3];
 
             //Set the number of lives
             numPlayerLives = 3;
+
+            //Set the goldenCarrotFound flag
+            goldenCarrotFound = false;
         }
         else if (currentLevel == 1)
         {
@@ -220,7 +227,7 @@ public class Game implements LevelWatcher, MouseWatcher
                             graphicsMap.get(mappedId).get(Entity.DYING_RIGHT_GRAPHICS).setWatcher(enemies[numEnemies]);
                         }
                         break;
-                    case 24: //LevelManager block
+                    case 24: //Level Complete Sign
                         addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_LEVEL, graphicsMap.get(mappedId)));
                         break;
                     case 25: //Grass Block Spike Top
@@ -230,7 +237,7 @@ public class Game implements LevelWatcher, MouseWatcher
                         addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_COLLECT, graphicsMap.get(mappedId)));
                         break;
                     case 27: //Golden Carrot
-                        addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_COLLECT, graphicsMap.get(mappedId)));
+                        addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_LEVEL, graphicsMap.get(mappedId)));
                         break;
                     default: //Default
                         System.out.println("No definition found for id = " + mappedId);
@@ -252,11 +259,9 @@ public class Game implements LevelWatcher, MouseWatcher
         }
         else
         {
-            gameState = FINAL_MENU;
-
-            //Reinitialize the first level in case the player wants to play again
-            currentLevel = 0;
-            initializeLevel(playerInputComponent);
+            //The Golden Carrot was found
+            goldenCarrotFound = true;
+            gameOver(playerInputComponent);
         }
     }
 
@@ -282,6 +287,27 @@ public class Game implements LevelWatcher, MouseWatcher
     }
 
     @Override
+    public void enemyDefeated()
+    {
+        //Increment the number of enemies defeated
+        numEnemiesDefeated++;
+
+        if (numEnemiesDefeated < 1000)
+        {
+            //Determine the values in the hundreds, tens, and ones places
+            numEnemiesValues[2] = numEnemiesDefeated/100 % 10; //Hundreds
+            numEnemiesValues[1] = numEnemiesDefeated/10 % 10; //Tens
+            numEnemiesValues[0] = numEnemiesDefeated % 10; //Ones
+        }
+        else //We've are a beast
+        {
+            numEnemiesValues[2] = 9; //Hundreds
+            numEnemiesValues[1] = 9; //Tens
+            numEnemiesValues[0] = 9; //Ones
+        }
+    }
+
+    @Override
     public void playerHasDied(InputComponent playerInputComponent)
     {
         //Subtract a life
@@ -290,11 +316,7 @@ public class Game implements LevelWatcher, MouseWatcher
         //If the player has lost all its lives, game over
         if (numPlayerLives < 0)
         {
-            gameState = FINAL_MENU;
-
-            //Reinitialize the first level in case the player wants to play again
-            currentLevel = 0;
-            initializeLevel(playerInputComponent);
+            gameOver(playerInputComponent);
         }
     }
 
@@ -328,6 +350,14 @@ public class Game implements LevelWatcher, MouseWatcher
         {
             musicDisabled = !musicDisabled;
         }
+    }
+
+    public void gameOver(InputComponent playerInputComponent)
+    {
+        //Reinitialize the first level in case the player wants to play again
+        gameState = FINAL_MENU;
+        currentLevel = 0;
+        initializeLevel(playerInputComponent);
     }
 
     public void update(long loopPeriodInNanos)
@@ -400,6 +430,36 @@ public class Game implements LevelWatcher, MouseWatcher
         {
             //Draw the main menu image
             dbGraphics.drawImage(imageManager.getImages("Final Menu").get(0), 0, 0, null);
+
+            //Draw the Golden Carrot not found screen if the player lost
+            if (!goldenCarrotFound)
+            {
+                dbGraphics.drawImage(imageManager.getImages("Menu Final Tablet Golden Carrot Lose").get(0), 150, 270, null);
+            }
+
+            //Draw the number of carrots collected
+            int finalMenuOffset = 374; //x position to draw first digit
+            for (int i = 2; i >= 0; i--)
+            {
+                //If i is zero, always draw. Otherwise, make sure we don't draw leading zeros
+                if (i == 0 || (numCarrotsValues[i] != 0 || (i != 2 && numCarrotsValues[i + 1] != 0)))
+                {
+                    dbGraphics.drawImage(imageManager.getImages("Numbers").get(numCarrotsValues[i]), finalMenuOffset, 380, null);
+                    finalMenuOffset += 9;
+                }
+            }
+
+            //Draw the number of enemies defeated
+            finalMenuOffset = 374; //x position to draw first digit
+            for (int i = 2; i >= 0; i--)
+            {
+                //If i is zero, always draw. Otherwise, make sure we don't draw leading zeros
+                if (i == 0 || (numEnemiesValues[i] != 0 || (i != 2 && numEnemiesValues[i + 1] != 0)))
+                {
+                    dbGraphics.drawImage(imageManager.getImages("Numbers").get(numEnemiesValues[i]), finalMenuOffset, 470, null);
+                    finalMenuOffset += 9;
+                }
+            }
         }
 
         //Draw the sound and music disabled symbols if necessary

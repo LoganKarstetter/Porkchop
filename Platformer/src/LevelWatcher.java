@@ -4,6 +4,9 @@ public interface LevelWatcher
     //the event block for triggering a level change
     void changeToNextLevel(InputComponent inputComponent);
 
+    //Called by the Game once the player has defeated an enemy
+    void enemyDefeated();
+
     //Called by the Game once the player has picked up a collectible
     void itemCollected();
 

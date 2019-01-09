@@ -21,6 +21,7 @@ Platformer Ribbon.png
 //Menu
 Main Menu.png
 Final Menu.png
+Menu Final Tablet Golden Carrot Lose.png
 
 //Pig
 Pig Left.png

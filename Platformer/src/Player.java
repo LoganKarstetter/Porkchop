@@ -50,6 +50,7 @@ public class Player extends Entity implements AnimationWatcher
                 if ((boundingBox.y + boundingBox.height/2) <= enemies[i].boundingBox.y)
                 {
                     enemies[i].setEntityState(DEAD_STATE);
+                    levelWatcher.enemyDefeated();
                     state = JUMPING_STATE;
                 }
                 else //Kill the player
