@@ -23,7 +23,7 @@ public class Block
 
     public void draw(Graphics dbGraphics, int xOffset, int yOffset)
     {
-        graphicsMap.get(NORMAL_GRAPHICS).draw(dbGraphics, xOffset, yOffset);
+        graphicsMap.get(NORMAL_GRAPHICS).draw(dbGraphics, xOffset, yOffset, elapsedAnimationTimeInMs);
 
     }
 }

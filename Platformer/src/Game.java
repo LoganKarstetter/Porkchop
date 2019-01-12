@@ -139,8 +139,8 @@ public class Game implements LevelWatcher, MouseWatcher
         graphicsMap.put(23, new HashMap<>());
         graphicsMap.get(23).put(Entity.IDLE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Turtle Left"), 0, false));
         graphicsMap.get(23).put(Entity.IDLE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Turtle Right"), 0, false));
-        graphicsMap.get(23).put(Entity.MOVE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Turtle Walk Left"), 800, true));
-        graphicsMap.get(23).put(Entity.MOVE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Turtle Walk Right"), 800, true));
+        graphicsMap.get(23).put(Entity.MOVE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Turtle Walk Left"), 700, true));
+        graphicsMap.get(23).put(Entity.MOVE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Turtle Walk Right"), 700, true));
         graphicsMap.get(23).put(Entity.MIDAIR_LEFT_GRAPHICS,  new Animation(imageManager.getImages("Turtle Left"), 0, false));
         graphicsMap.get(23).put(Entity.MIDAIR_RIGHT_GRAPHICS, new Animation(imageManager.getImages("Turtle Right"), 0, false));
         graphicsMap.get(23).put(Entity.DYING_LEFT_GRAPHICS,   new Animation(imageManager.getImages("Smoke Puff"), 500, false));
@@ -379,7 +379,7 @@ public class Game implements LevelWatcher, MouseWatcher
             }
             for (int i = 0; i < numEnemies; i++)
             {
-                enemies[i].update(levelMaps.get(currentLevel), loopPeriodInNanos / 1000000);
+                enemies[i].update(levelMaps.get(currentLevel), eventBlocks, numEventBlocks,loopPeriodInNanos / 1000000);
             }
             for (int i = 0; i < numEventBlocks; i++)
             {

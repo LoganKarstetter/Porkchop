@@ -22,7 +22,7 @@ public class EventBlock extends Block
     {
         if (blockType != BLOCK_INACTIVE)
         {
-            graphicsMap.get(NORMAL_GRAPHICS).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset);
+            graphicsMap.get(NORMAL_GRAPHICS).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset, elapsedAnimationTimeInMs);
         }
     }
 

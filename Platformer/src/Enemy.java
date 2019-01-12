@@ -3,6 +3,7 @@ import java.util.HashMap;
 
 public class Enemy extends Entity implements AnimationWatcher
 {
+    private static final int ENEMY_VERTICAL_SPEED = 5;
     private boolean isActive;
 
     public Enemy(int x, int y, int speedInPixels, int directionToMove,
@@ -19,27 +20,43 @@ public class Enemy extends Entity implements AnimationWatcher
         waitingForAnimation = false;
         isActive = true;
 
-        determineGraphicsFromDirection();
+        setGraphicsState(state, direction, true);
         boundingBox = new Rectangle(x, y, graphicsMap.get(graphicsState).getImageWidth(), graphicsMap.get(graphicsState).getImageHeight());
 
         //Store the enemy spawn point for re-spawning
         spawnPoint = new Point(x, y);
     }
 
-    public void update(int[][] blockMap,long loopPeriodInMs)
+    public void update(int[][] blockMap, EventBlock[] eventBlocks, int numEventBlocks, long loopPeriodInMs)
     {
         if (isActive)
         {
             elapsedAnimationTimeInMs = graphicsMap.get(graphicsState).update(loopPeriodInMs, elapsedAnimationTimeInMs);
-            move(blockMap);
+            move(blockMap, eventBlocks, numEventBlocks);
         }
     }
 
-    private void move(int[][] blockMap)
+    private void checkEventBlockCollisions(EventBlock[] eventBlocks, int numEventBlocks)
+    {
+        for (int i = 0; i < numEventBlocks; i++)
+        {
+            if (checkCollision(eventBlocks[i].getBoundingBox(), 30)
+                    && eventBlocks[i].getBlockType() == EventBlock.BLOCK_DANGER)
+            {
+                //Kill the enemy
+                state = DEAD_STATE;
+            }
+        }
+    }
+
+    private void move(int[][] blockMap, EventBlock[] eventBlocks, int numEventBlocks)
     {
         //Allow horizontal movement if enemy is not dead
         if (state != DEAD_STATE)
         {
+            //Check for event block collisions
+            checkEventBlockCollisions(eventBlocks, numEventBlocks);
+
             //Attempt to move depending on direction
             if (direction == LEFT)
             {
@@ -51,7 +68,6 @@ public class Enemy extends Entity implements AnimationWatcher
                     {
                         setGraphicsState(Entity.MOVE_RIGHT_GRAPHICS);
                     }
-
                 }
             }
             else if (direction == RIGHT)
@@ -81,22 +97,18 @@ public class Enemy extends Entity implements AnimationWatcher
         }
         else if (state == FALLING_STATE)
         {
-            moveVertical(blockMap, speed);
+            moveVertical(blockMap, ENEMY_VERTICAL_SPEED);
 
             //Update graphics if enemy lands
-            if (state == FALLING_STATE)
+            if (state == NORMAL_STATE)
             {
-                setGraphicsState(state, direction, false);
-            }
-            else if (state == NORMAL_STATE)
-            {
-                determineGraphicsFromDirection();
+                setGraphicsState(state, direction, true);
             }
         }
         else if (state == DEAD_STATE)
         {
             //Wait for the death animation to finish before re-spawning
-            //If the graphic state changed, this is the first update where the player
+            //If the graphic state changed, this is the first update where the enemy
             //is in the dead state. Set the waiting for animation flag here.
             if (setGraphicsState(state, direction, false))
             {
@@ -110,25 +122,7 @@ public class Enemy extends Entity implements AnimationWatcher
             if (!waitingForAnimation)
             {
                 isActive = false;
-                graphicsMap.get(graphicsState).resetAnimation();
             }
-        }
-    }
-
-    private void determineGraphicsFromDirection()
-    {
-        //Determine graphics state from direction, this initializes elapsedAnimationTimeInMs
-        if (direction == LEFT)
-        {
-            setGraphicsState(Entity.MOVE_LEFT_GRAPHICS);
-        }
-        else if (direction == RIGHT)
-        {
-            setGraphicsState(Entity.MOVE_RIGHT_GRAPHICS);
-        }
-        else
-        {
-            setGraphicsState(Entity.IDLE_RIGHT_GRAPHICS);
         }
     }
 
@@ -136,12 +130,13 @@ public class Enemy extends Entity implements AnimationWatcher
     {
         isActive = true;
         state = NORMAL_STATE;
+        setGraphicsState(state, direction, true);
         boundingBox.setLocation(spawnPoint);
     }
 
     public void draw(Graphics dbGraphics, int xOffset, int yOffset)
     {
-        graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset);
+        graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset, elapsedAnimationTimeInMs);
     }
 
     public void animationHasEnded()

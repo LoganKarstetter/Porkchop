@@ -8,7 +8,6 @@ public class Animation
     private long totalDurationInMs;
     private long imageDurationInMs;
     private boolean isLooping;
-    private int imagePosition;
     private AnimationWatcher watcher;
 
     public Animation(ArrayList<BufferedImage> imageSequence, long durationInMs, boolean loopAnimation)
@@ -24,19 +23,15 @@ public class Animation
         totalDurationInMs = durationInMs;
         imageDurationInMs = totalDurationInMs / images.size();
         isLooping = loopAnimation;
-        imagePosition = 0;
     }
 
     public long update(long loopPeriodInMs, long localElapsedTimeInMs)
     {
         //Verify looping flag after the first complete loop
-        if (imagePosition < (images.size() - 1) || isLooping)
+        if ((localElapsedTimeInMs / imageDurationInMs) < (images.size() - 1) || isLooping)
         {
             //Compute elapsed time and reset to zero if it's greater than or equal to the total duration
             localElapsedTimeInMs = (localElapsedTimeInMs + loopPeriodInMs) % totalDurationInMs;
-
-            //Update the image position
-            imagePosition = (int) (localElapsedTimeInMs / imageDurationInMs);
         }
         else //Inform the watcher that the animation ended
         {
@@ -49,16 +44,10 @@ public class Animation
         return localElapsedTimeInMs;
     }
 
-    public void draw(Graphics dbGraphics, int x, int y)
+    public void draw(Graphics dbGraphics, int x, int y, long localElapsedTimeInMs)
     {
         //Draw the animation
-        dbGraphics.drawImage(images.get(imagePosition), x, y, null);
-    }
-
-    public void resetAnimation()
-    {
-        //Reset the image position, it is assumed the graphics state will change before the next update
-        imagePosition = 0;
+        dbGraphics.drawImage(images.get((int) (localElapsedTimeInMs / imageDurationInMs)), x, y, null);
     }
 
     public void setWatcher(AnimationWatcher animationWatcher)

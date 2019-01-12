@@ -209,7 +209,6 @@ public class Player extends Entity implements AnimationWatcher
                 state = NORMAL_STATE;
                 numOfJumpingUpdates = 0;
                 boundingBox.setLocation(spawnPoint);
-                graphicsMap.get(graphicsState).resetAnimation();
                 setGraphicsState(Entity.IDLE_RIGHT_GRAPHICS);
                 resetRibbons(ribbons, numRibbons);
                 resetEnemies(enemies, numEnemies);
@@ -245,7 +244,7 @@ public class Player extends Entity implements AnimationWatcher
 
     public void draw(Graphics dbGraphics, int xOffset, int yOffset)
     {
-        graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset);
+        graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset, elapsedAnimationTimeInMs);
     }
 
     public void animationHasEnded()
