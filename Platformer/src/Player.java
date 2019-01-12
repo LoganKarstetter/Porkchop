@@ -194,6 +194,9 @@ public class Player extends Entity implements AnimationWatcher
             if (setGraphicsState(state, direction, false))
             {
                 waitingForAnimation = true;
+
+                //Move the player's position upwards so that the smoke puff is relative to the blocks
+                boundingBox.y = (boundingBox.y / Block.BLOCK_HEIGHT) * Block.BLOCK_HEIGHT;
             }
             changeRibbonScrollDirection(ribbons, numRibbons, Ribbon.SCROLL_STILL);
 

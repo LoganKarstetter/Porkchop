@@ -61,7 +61,7 @@ public class Game implements LevelWatcher, MouseWatcher
                                     Block.BLOCK_HEIGHT * levelMaps.get(currentLevel)[0].length);
 
         //Set the state to the main menu
-        gameState = FINAL_MENU;
+        gameState = MAIN_MENU;
 
         //Enable the sound and music
         soundDisabled = false;
@@ -137,12 +137,12 @@ public class Game implements LevelWatcher, MouseWatcher
         //Define common elements that are used in every level
         //Test enemy
         graphicsMap.put(23, new HashMap<>());
-        graphicsMap.get(23).put(Entity.IDLE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Serpent Body"), 0, false));
-        graphicsMap.get(23).put(Entity.IDLE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Serpent Body"), 0, false));
-        graphicsMap.get(23).put(Entity.MOVE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Serpent Body"), 0, false));
-        graphicsMap.get(23).put(Entity.MOVE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Serpent Body"), 0, false));
-        graphicsMap.get(23).put(Entity.MIDAIR_LEFT_GRAPHICS,  new Animation(imageManager.getImages("Serpent Body"), 0, false));
-        graphicsMap.get(23).put(Entity.MIDAIR_RIGHT_GRAPHICS, new Animation(imageManager.getImages("Serpent Body"), 0, false));
+        graphicsMap.get(23).put(Entity.IDLE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Turtle Left"), 0, false));
+        graphicsMap.get(23).put(Entity.IDLE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Turtle Right"), 0, false));
+        graphicsMap.get(23).put(Entity.MOVE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Turtle Walk Left"), 800, true));
+        graphicsMap.get(23).put(Entity.MOVE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Turtle Walk Right"), 800, true));
+        graphicsMap.get(23).put(Entity.MIDAIR_LEFT_GRAPHICS,  new Animation(imageManager.getImages("Turtle Left"), 0, false));
+        graphicsMap.get(23).put(Entity.MIDAIR_RIGHT_GRAPHICS, new Animation(imageManager.getImages("Turtle Right"), 0, false));
         graphicsMap.get(23).put(Entity.DYING_LEFT_GRAPHICS,   new Animation(imageManager.getImages("Smoke Puff"), 500, false));
         graphicsMap.get(23).put(Entity.DYING_RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Smoke Puff"), 500, false));
 
@@ -220,7 +220,9 @@ public class Game implements LevelWatcher, MouseWatcher
                         }
                         break;
                     case 23: //Test Enemy
-                        if ( addEnemy(new Enemy(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, 3, Enemy.RIGHT, graphicsMap.get(mappedId))))
+                        if ( addEnemy(new Enemy(x * Block.BLOCK_WIDTH,
+                                y * Block.BLOCK_HEIGHT + (Block.BLOCK_HEIGHT - graphicsMap.get(mappedId).get(Entity.IDLE_LEFT_GRAPHICS).getImageHeight()),
+                                1, Enemy.LEFT, graphicsMap.get(mappedId))))
                         {
                             //Add the animation watcher if the enemy is successfully added
                             graphicsMap.get(mappedId).get(Entity.DYING_LEFT_GRAPHICS).setWatcher(enemies[numEnemies]);

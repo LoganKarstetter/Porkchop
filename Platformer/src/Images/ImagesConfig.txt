@@ -8,6 +8,12 @@ Grass Block Spike Base.png
 [Carrot: Carrot 1.png, Carrot 2.png, Carrot 3.png, Carrot 4.png, Carrot 5.png, Carrot 4.png, Carrot 3.png, Carrot 2.png]
 [Golden Carrot: Golden Carrot 1.png, Golden Carrot 2.png, Golden Carrot 3.png, Golden Carrot 4.png, Golden Carrot 5.png, Golden Carrot 4.png, Golden Carrot 3.png, Golden Carrot 2.png]
 
+//Enemies
+Turtle Left.png
+Turtle Right.png
+[Turtle Walk Left: Turtle Left Walk 1.png, Turtle Left Walk 2.png]
+[Turtle Walk Right: Turtle Right Walk 1.png, Turtle Right Walk 2.png]
+
 //Icons
 Platformer Header.png
 Pig Life Icon.png
@@ -26,8 +32,6 @@ Menu Final Tablet Golden Carrot Lose.png
 //Pig
 Pig Left.png
 Pig Right.png
-Pig Dead Left.png
-Pig Dead Right.png
 [Pig Walk Left: Pig Left Walk 1.png, Pig Left Walk 2.png]
 [Pig Walk Right: Pig Right Walk 1.png, Pig Right Walk 2.png]
 [Smoke Puff: Smoke Puff 1.png, Smoke Puff 2.png, Smoke Puff 3.png, Smoke Puff 4.png, Smoke Puff 5.png, Smoke Puff 6.png, Smoke Puff 7.png, Smoke Puff 8.png, Smoke Puff 9.png, Blank Image.png]

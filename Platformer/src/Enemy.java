@@ -88,6 +88,10 @@ public class Enemy extends Entity implements AnimationWatcher
             {
                 setGraphicsState(state, direction, false);
             }
+            else if (state == NORMAL_STATE)
+            {
+                determineGraphicsFromDirection();
+            }
         }
         else if (state == DEAD_STATE)
         {
@@ -97,6 +101,9 @@ public class Enemy extends Entity implements AnimationWatcher
             if (setGraphicsState(state, direction, false))
             {
                 waitingForAnimation = true;
+
+                //Move the enemy's position upwards so that the smoke puff is relative to the blocks
+                boundingBox.y = (boundingBox.y / Block.BLOCK_HEIGHT) * Block.BLOCK_HEIGHT;
             }
 
             //If the enemy is no longer waiting for an animation, set it to inactive
