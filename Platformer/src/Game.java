@@ -99,20 +99,6 @@ public class Game implements LevelWatcher, MouseWatcher
             graphicsMap.get(1).put(Entity.DYING_LEFT_GRAPHICS,   new Animation(imageManager.getImages("Smoke Puff"), 500, false));
             graphicsMap.get(1).put(Entity.DYING_RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Smoke Puff"), 500, false));
 
-            //Define grass terrain blocks
-            String[] grassBlocks = {"Grass Block", "Grass Block Column", "Grass Block Column Merge", "Grass Block Column Base", "Grass Block Column Left Merge",
-                    "Grass Block Column Right Merge", "Grass Block Column Top", "Grass Block Ground", "Grass Block Left Edge", "Grass Block Left Edge Merge",
-                    "Grass Block Left Merge", "Grass Block Left Side", "Grass Block Right Edge", "Grass Block Right Edge Merge", "Grass Block Right Merge",
-                    "Grass Block Right Side", "Grass Block Cavern Ceiling", "Grass Block Cavern Ceiling Column", "Grass Block Cavern Lower Left",
-                    "Grass Block Cavern Lower Right", "Grass Block Spike Base"};
-
-            //Loop and add animations to the HashMap, start at 2g
-            for (int i = 2; i < grassBlocks.length + 2; i++)
-            {
-                graphicsMap.put(i, new HashMap<>());
-                graphicsMap.get(i).put(Block.NORMAL_GRAPHICS, new Animation(imageManager.getImages(grassBlocks[i - 2]), 0, false));
-            }
-
             //Set the number of carrots collected and enemies defeated
             numCarrotsCollected = 0;
             numCarrotsValues = new int[3]; //Hundreds -> ones places
@@ -133,9 +119,15 @@ public class Game implements LevelWatcher, MouseWatcher
                                         Block.BLOCK_HEIGHT * levelMaps.get(currentLevel)[0].length);
 
         }
-
         //Define common elements that are used in every level
-        //Test enemy
+        //Define grass terrain blocks
+        String[] blockNames = {"Grass Block", "Grass Block Column", "Grass Block Column Merge", "Grass Block Column Base", "Grass Block Column Left Merge",
+                "Grass Block Column Right Merge", "Grass Block Column Top", "Grass Block Ground", "Grass Block Left Edge", "Grass Block Left Edge Merge",
+                "Grass Block Left Merge", "Grass Block Left Side", "Grass Block Right Edge", "Grass Block Right Edge Merge", "Grass Block Right Merge",
+                "Grass Block Right Side", "Grass Block Cavern Ceiling", "Grass Block Cavern Ceiling Column", "Grass Block Cavern Lower Left",
+                "Grass Block Cavern Lower Right", "Grass Block Spike Base"};
+
+        //Turtle
         graphicsMap.put(23, new HashMap<>());
         graphicsMap.get(23).put(Entity.IDLE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Turtle Left"), 0, false));
         graphicsMap.get(23).put(Entity.IDLE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Turtle Right"), 0, false));
@@ -161,6 +153,17 @@ public class Game implements LevelWatcher, MouseWatcher
         //Golden Carrot event block
         graphicsMap.put(27, new HashMap<>());
         graphicsMap.get(27).put(Block.NORMAL_GRAPHICS,  new Animation(imageManager.getImages("Golden Carrot"), 1200, true));
+
+        //Boar
+        graphicsMap.put(28, new HashMap<>());
+        graphicsMap.get(28).put(Entity.IDLE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Boar Left"), 0, false));
+        graphicsMap.get(28).put(Entity.IDLE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Boar Right"), 0, false));
+        graphicsMap.get(28).put(Entity.MOVE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Boar Walk Left"), 500, true));
+        graphicsMap.get(28).put(Entity.MOVE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Boar Walk Right"), 500, true));
+        graphicsMap.get(28).put(Entity.MIDAIR_LEFT_GRAPHICS,  new Animation(imageManager.getImages("Boar Left"), 0, false));
+        graphicsMap.get(28).put(Entity.MIDAIR_RIGHT_GRAPHICS, new Animation(imageManager.getImages("Boar Right"), 0, false));
+        graphicsMap.get(28).put(Entity.DYING_LEFT_GRAPHICS,   new Animation(imageManager.getImages("Smoke Puff"), 500, false));
+        graphicsMap.get(28).put(Entity.DYING_RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Smoke Puff"), 500, false));
 
         //Define the ribbon(s)
         addRibbon(new Ribbon(imageManager.getImages("Platformer Ribbon").get(0), Ribbon.SCROLL_STILL, 2));
@@ -213,13 +216,18 @@ public class Game implements LevelWatcher, MouseWatcher
                     case 20: //Grass Block Cavern Lower Left
                     case 21: //Grass Block Cavern Lower Right
                     case 22: //Grass Block Spike Base
-
                         if (!blocks.containsKey(mappedId))
                         {
+                            if (!graphicsMap.containsKey(mappedId))
+                            {
+                                graphicsMap.put(mappedId, new HashMap<>());
+                                graphicsMap.get(mappedId).put(Block.NORMAL_GRAPHICS, new Animation(imageManager.getImages(blockNames[mappedId - 2]), 0 ,false));
+                            }
+
                             blocks.put(mappedId, new Block(graphicsMap.get(mappedId)));
                         }
                         break;
-                    case 23: //Test Enemy
+                    case 23: //Turtle
                         if ( addEnemy(new Enemy(x * Block.BLOCK_WIDTH,
                                 y * Block.BLOCK_HEIGHT + (Block.BLOCK_HEIGHT - graphicsMap.get(mappedId).get(Entity.IDLE_LEFT_GRAPHICS).getImageHeight()),
                                 1, Enemy.LEFT, graphicsMap.get(mappedId))))
@@ -240,6 +248,16 @@ public class Game implements LevelWatcher, MouseWatcher
                         break;
                     case 27: //Golden Carrot
                         addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_LEVEL, graphicsMap.get(mappedId)));
+                        break;
+                    case 28: //Boar
+                        if ( addEnemy(new Enemy(x * Block.BLOCK_WIDTH,
+                                y * Block.BLOCK_HEIGHT + (Block.BLOCK_HEIGHT - graphicsMap.get(mappedId).get(Entity.IDLE_LEFT_GRAPHICS).getImageHeight()),
+                                2, Enemy.LEFT, graphicsMap.get(mappedId))))
+                        {
+                            //Add the animation watcher if the enemy is successfully added
+                            graphicsMap.get(mappedId).get(Entity.DYING_LEFT_GRAPHICS).setWatcher(enemies[numEnemies]);
+                            graphicsMap.get(mappedId).get(Entity.DYING_RIGHT_GRAPHICS).setWatcher(enemies[numEnemies]);
+                        }
                         break;
                     default: //Default
                         System.out.println("No definition found for id = " + mappedId);

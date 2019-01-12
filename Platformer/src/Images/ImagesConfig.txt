@@ -1,6 +1,5 @@
 //Format single image: <image>, one per line
 //Format multiple images: <[sequence name: <image1>, <image2>]>, one per line
-Serpent Body.png
 
 //Events
 Level Complete Sign.png
@@ -13,6 +12,10 @@ Turtle Left.png
 Turtle Right.png
 [Turtle Walk Left: Turtle Left Walk 1.png, Turtle Left Walk 2.png]
 [Turtle Walk Right: Turtle Right Walk 1.png, Turtle Right Walk 2.png]
+Boar Left.png
+Boar Right.png
+[Boar Walk Left: Boar Left Walk 1.png, Boar Left Walk 2.png]
+[Boar Walk Right: Boar Right Walk 1.png, Boar Right Walk 2.png]
 
 //Icons
 Platformer Header.png

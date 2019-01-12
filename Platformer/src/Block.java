@@ -18,7 +18,17 @@ public class Block
 
     public void update(long loopPeriodInMs)
     {
-        elapsedAnimationTimeInMs = graphicsMap.get(NORMAL_GRAPHICS).update(loopPeriodInMs, elapsedAnimationTimeInMs);
+        if (graphicsMap != null)
+        {
+
+            elapsedAnimationTimeInMs = graphicsMap.get(NORMAL_GRAPHICS).update(loopPeriodInMs, elapsedAnimationTimeInMs);
+        }
+        else
+        {
+            System.out.println("graphics null");
+        }
+
+
     }
 
     public void draw(Graphics dbGraphics, int xOffset, int yOffset)
