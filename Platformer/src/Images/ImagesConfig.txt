@@ -12,6 +12,10 @@ Turtle Left.png
 Turtle Right.png
 [Turtle Walk Left: Turtle Left Walk 1.png, Turtle Left Walk 2.png]
 [Turtle Walk Right: Turtle Right Walk 1.png, Turtle Right Walk 2.png]
+Chicken Left.png
+Chicken Right.png
+[Chicken Walk Left: Chicken Left Walk 1.png, Chicken Left Walk 2.png]
+[Chicken Walk Right: Chicken Right Walk 1.png, Chicken Right Walk 2.png]
 Boar Left.png
 Boar Right.png
 [Boar Walk Left: Boar Left Walk 1.png, Boar Left Walk 2.png]

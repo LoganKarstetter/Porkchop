@@ -165,6 +165,17 @@ public class Game implements LevelWatcher, MouseWatcher
         graphicsMap.get(28).put(Entity.DYING_LEFT_GRAPHICS,   new Animation(imageManager.getImages("Smoke Puff"), 500, false));
         graphicsMap.get(28).put(Entity.DYING_RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Smoke Puff"), 500, false));
 
+        //Chicken
+        graphicsMap.put(29, new HashMap<>());
+        graphicsMap.get(29).put(Entity.IDLE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Chicken Left"), 0, false));
+        graphicsMap.get(29).put(Entity.IDLE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Chicken Right"), 0, false));
+        graphicsMap.get(29).put(Entity.MOVE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Chicken Walk Left"), 800, true));
+        graphicsMap.get(29).put(Entity.MOVE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Chicken Walk Right"), 800, true));
+        graphicsMap.get(29).put(Entity.MIDAIR_LEFT_GRAPHICS,  new Animation(imageManager.getImages("Chicken Left"), 0, false));
+        graphicsMap.get(29).put(Entity.MIDAIR_RIGHT_GRAPHICS, new Animation(imageManager.getImages("Chicken Right"), 0, false));
+        graphicsMap.get(29).put(Entity.DYING_LEFT_GRAPHICS,   new Animation(imageManager.getImages("Smoke Puff"), 500, false));
+        graphicsMap.get(29).put(Entity.DYING_RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Smoke Puff"), 500, false));
+
         //Define the ribbon(s)
         addRibbon(new Ribbon(imageManager.getImages("Platformer Ribbon").get(0), Ribbon.SCROLL_STILL, 2));
 
@@ -253,6 +264,16 @@ public class Game implements LevelWatcher, MouseWatcher
                         if ( addEnemy(new Enemy(x * Block.BLOCK_WIDTH,
                                 y * Block.BLOCK_HEIGHT + (Block.BLOCK_HEIGHT - graphicsMap.get(mappedId).get(Entity.IDLE_LEFT_GRAPHICS).getImageHeight()),
                                 2, Enemy.LEFT, graphicsMap.get(mappedId))))
+                        {
+                            //Add the animation watcher if the enemy is successfully added
+                            graphicsMap.get(mappedId).get(Entity.DYING_LEFT_GRAPHICS).setWatcher(enemies[numEnemies]);
+                            graphicsMap.get(mappedId).get(Entity.DYING_RIGHT_GRAPHICS).setWatcher(enemies[numEnemies]);
+                        }
+                        break;
+                    case 29: //Chicken
+                        if ( addEnemy(new Enemy(x * Block.BLOCK_WIDTH,
+                                y * Block.BLOCK_HEIGHT + (Block.BLOCK_HEIGHT - graphicsMap.get(mappedId).get(Entity.IDLE_LEFT_GRAPHICS).getImageHeight()),
+                                1, Enemy.LEFT, graphicsMap.get(mappedId))))
                         {
                             //Add the animation watcher if the enemy is successfully added
                             graphicsMap.get(mappedId).get(Entity.DYING_LEFT_GRAPHICS).setWatcher(enemies[numEnemies]);
