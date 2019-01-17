@@ -11,5 +11,5 @@ public interface LevelWatcher
     void itemCollected();
 
     //This method is called by the Game once the player has died
-    void playerHasDied(InputComponent inputComponent);
+    void playerHasDied();
 }

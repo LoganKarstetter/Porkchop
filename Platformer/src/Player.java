@@ -203,7 +203,7 @@ public class Player extends Entity implements AnimationWatcher
             if (!waitingForAnimation)
             {
                 //Inform the game the player has died
-                levelWatcher.playerHasDied(inputComponent);
+                levelWatcher.playerHasDied();
 
                 //Reset player data
                 state = NORMAL_STATE;

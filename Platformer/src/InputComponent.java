@@ -53,7 +53,7 @@ public class InputComponent implements KeyListener, MouseListener
     public void mouseClicked(MouseEvent event) { /* Do nothing */ }
 
     @Override
-    public void mousePressed(MouseEvent event) { mouseWatcher.mouseClicked(event.getPoint()); }
+    public void mousePressed(MouseEvent event) { mouseWatcher.mouseClicked(event.getPoint(), this); }
 
     @Override
     public void mouseReleased(MouseEvent event) { /* Do nothing */ }

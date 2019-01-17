@@ -169,8 +169,8 @@ public class Game implements LevelWatcher, MouseWatcher
         graphicsMap.put(29, new HashMap<>());
         graphicsMap.get(29).put(Entity.IDLE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Chicken Left"), 0, false));
         graphicsMap.get(29).put(Entity.IDLE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Chicken Right"), 0, false));
-        graphicsMap.get(29).put(Entity.MOVE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Chicken Walk Left"), 800, true));
-        graphicsMap.get(29).put(Entity.MOVE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Chicken Walk Right"), 800, true));
+        graphicsMap.get(29).put(Entity.MOVE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Chicken Walk Left"), 600, true));
+        graphicsMap.get(29).put(Entity.MOVE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Chicken Walk Right"), 600, true));
         graphicsMap.get(29).put(Entity.MIDAIR_LEFT_GRAPHICS,  new Animation(imageManager.getImages("Chicken Left"), 0, false));
         graphicsMap.get(29).put(Entity.MIDAIR_RIGHT_GRAPHICS, new Animation(imageManager.getImages("Chicken Right"), 0, false));
         graphicsMap.get(29).put(Entity.DYING_LEFT_GRAPHICS,   new Animation(imageManager.getImages("Smoke Puff"), 500, false));
@@ -273,7 +273,7 @@ public class Game implements LevelWatcher, MouseWatcher
                     case 29: //Chicken
                         if ( addEnemy(new Enemy(x * Block.BLOCK_WIDTH,
                                 y * Block.BLOCK_HEIGHT + (Block.BLOCK_HEIGHT - graphicsMap.get(mappedId).get(Entity.IDLE_LEFT_GRAPHICS).getImageHeight()),
-                                1, Enemy.LEFT, graphicsMap.get(mappedId))))
+                                2, Enemy.LEFT, graphicsMap.get(mappedId))))
                         {
                             //Add the animation watcher if the enemy is successfully added
                             graphicsMap.get(mappedId).get(Entity.DYING_LEFT_GRAPHICS).setWatcher(enemies[numEnemies]);
@@ -302,7 +302,7 @@ public class Game implements LevelWatcher, MouseWatcher
         {
             //The Golden Carrot was found
             goldenCarrotFound = true;
-            gameOver(playerInputComponent);
+            gameOver();
         }
     }
 
@@ -349,7 +349,7 @@ public class Game implements LevelWatcher, MouseWatcher
     }
 
     @Override
-    public void playerHasDied(InputComponent playerInputComponent)
+    public void playerHasDied()
     {
         //Subtract a life
         numPlayerLives--;
@@ -357,12 +357,12 @@ public class Game implements LevelWatcher, MouseWatcher
         //If the player has lost all its lives, game over
         if (numPlayerLives < 0)
         {
-            gameOver(playerInputComponent);
+            gameOver();
         }
     }
 
     @Override
-    public void mouseClicked(Point mousePosition)
+    public void mouseClicked(Point mousePosition, InputComponent playerInputComponent)
     {
         //Determine actions based on game state
         if (gameState == MAIN_MENU || gameState == FINAL_MENU)
@@ -370,6 +370,8 @@ public class Game implements LevelWatcher, MouseWatcher
             //Start/Restart button (coordinates from GIMP)
             if (new Rectangle(218, 549, 64, 42).contains(mousePosition))
             {
+                currentLevel = 0;
+                initializeLevel(playerInputComponent);
                 gameState = PLAYING_GAME;
             }
 
@@ -393,12 +395,10 @@ public class Game implements LevelWatcher, MouseWatcher
         }
     }
 
-    public void gameOver(InputComponent playerInputComponent)
+    public void gameOver()
     {
-        //Reinitialize the first level in case the player wants to play again
+        //Set the state to the final menu
         gameState = FINAL_MENU;
-        currentLevel = 0;
-        initializeLevel(playerInputComponent);
     }
 
     public void update(long loopPeriodInNanos)
