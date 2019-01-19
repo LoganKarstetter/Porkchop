@@ -1,36 +1,73 @@
 import java.awt.*;
 import java.util.HashMap;
 
+/**
+ * @author Logan Karstetter
+ * Date: 2018
+ */
 public abstract class Entity
 {
+    /** The enum representing the idle left graphics state */
     public static final int IDLE_LEFT_GRAPHICS = 0;
+    /** The enum representing the idle right graphics state */
     public static final int IDLE_RIGHT_GRAPHICS = 1;
+    /** The enum representing the moving left graphics state */
     public static final int MOVE_LEFT_GRAPHICS = 2;
+    /** The enum representing the moving right graphics state */
     public static final int MOVE_RIGHT_GRAPHICS = 3;
+    /** The enum representing the jumping/falling left graphics state */
     public static final int MIDAIR_LEFT_GRAPHICS = 4;
+    /** The enum representing the jumping/falling right graphics state */
     public static final int MIDAIR_RIGHT_GRAPHICS = 5;
+    /** The enum representing the dying left graphics state */
     public static final int DYING_LEFT_GRAPHICS = 6;
+    /** The enum representing the dying right graphics state */
     public static final int DYING_RIGHT_GRAPHICS = 7;
+    /** The graphic state of the entity */
     protected int graphicsState;
 
+    /** The enum representing the entity's normal state */
     protected static final int NORMAL_STATE = 0;
+    /** The enum representing the entity's falling state */
     protected static final int FALLING_STATE = 1;
+    /** The enum representing the entity's jumping state */
     protected static final int JUMPING_STATE = 2;
+    /** The enum representing the entity's dead state */
     protected static final int DEAD_STATE = 3;
+    /** The game logic state of the entity */
     protected int state;
 
+    /** The enum representing the not moving direction */
     public static final int STILL = 0;
+    /** The enum representing the left direction */
     public static final int LEFT = 1;
+    /** The enum representing the right direction */
     public static final int RIGHT = 2;
+    /** The direction state of the entity. */
     protected int direction;
 
+    /** The number of pixels the entity moves every game update */
     protected int speed;
+    /** The amount of time elapsed in the entity's current animation */
     protected long elapsedAnimationTimeInMs;
+    /** A flag specifying that the entity is waiting for an animation to complete */
     protected boolean waitingForAnimation;
+    /** The spawn point of the entity */
     protected Point spawnPoint;
+    /** The bounding box of the entity that stores its position and dimensions */
     protected Rectangle boundingBox;
+    /** Maps graphics states (integers) to animations */
     protected HashMap<Integer, Animation> graphicsMap;
 
+    /**
+     * Move the entity horizontally. The direction of movement is determined by the
+     * xPixelsMove argument. If the entity can freely moved the requested number of
+     * pixels then this method returns false. Otherwise, if the entity collides with
+     * a block this method will return true and it will not move the full distance.
+     * @param blockIdMap The grid of blocks id's that are checked for collision detection.
+     * @param xPixelsMoved The number of pixels to move.
+     * @return True if the entity collided with a block, false otherwise.
+     */
     final protected boolean moveHorizontal(int[][] blockIdMap, int xPixelsMoved)
     {
         int gridX; //Entity x position converted to block index
@@ -110,7 +147,16 @@ public abstract class Entity
         return false;
     }
 
-    final protected void moveVertical(int[][] blockMap, int yPixelsMoved)
+    /**
+     * Move the entity vertically. The direction of movement is determined by the
+     * yPixelsMove argument. If the entity can freely moved the requested number of
+     * pixels then this method returns false. Otherwise, if the entity collides with
+     * a block this method will return true and it will not move the full distance.
+     * @param blockIdMap The grid of blocks id's that are checked for collision detection.
+     * @param yPixelsMoved The number of pixels to move.
+     * @return True if the entity collided with a block, false otherwise.
+     */
+    final protected void moveVertical(int[][] blockIdMap, int yPixelsMoved)
     {
         int gridXLeft; //Entity x position converted to block index
         int gridXRight; //Entity x position plus width converted to block index
@@ -134,9 +180,9 @@ public abstract class Entity
                 boundingBox.y += yPixelsMoved;
                 return;
             }
-            else if (gridY >= blockMap[0].length) //Below map, kill the entity
+            else if (gridY >= blockIdMap[0].length) //Below map, kill the entity
             {
-                if (gridY > blockMap[0].length)
+                if (gridY > blockIdMap[0].length)
                 {
                     state = DEAD_STATE;
                 }
@@ -146,15 +192,15 @@ public abstract class Entity
                 }
                 return;
             }
-            else if (gridXRight >= blockMap.length) //Jumping along right side of map
+            else if (gridXRight >= blockIdMap.length) //Jumping along right side of map
             {
                 //Ignore gridXRight, no collision outside of map
                 gridXRight = gridXLeft;
             }
 
             //Retrieve the indexes of the blocks just to the left and right of the entity
-            idOfBlockLeft = blockMap[gridXLeft][gridY];
-            idOfBlockRight = blockMap[gridXRight][gridY];
+            idOfBlockLeft = blockIdMap[gridXLeft][gridY];
+            idOfBlockRight = blockIdMap[gridXRight][gridY];
 
             //If either index is not 0 or 100, and is a solid block, then collision
             if ((idOfBlockLeft % 100 != 0 && (idOfBlockLeft / 100) >= 1)
@@ -182,9 +228,9 @@ public abstract class Entity
                 boundingBox.y += yPixelsMoved;
                 return;
             }
-            else if (gridY >= blockMap[0].length) //Below map, kill the entity
+            else if (gridY >= blockIdMap[0].length) //Below map, kill the entity
             {
-                if (gridY > blockMap[0].length)
+                if (gridY > blockIdMap[0].length)
                 {
                     state = DEAD_STATE;
                 }
@@ -195,14 +241,14 @@ public abstract class Entity
                 }
                 return;
             }
-            else if (gridXRight >= blockMap.length) //Falling along right side of map
+            else if (gridXRight >= blockIdMap.length) //Falling along right side of map
             {
                 gridXRight = gridXLeft; //Ignore gridXRight, no collision outside of map
             }
 
             //Retrieve the indexes of the blocks just to the left and right of the entity
-            idOfBlockLeft = blockMap[gridXLeft][gridY];
-            idOfBlockRight = blockMap[gridXRight][gridY];
+            idOfBlockLeft = blockIdMap[gridXLeft][gridY];
+            idOfBlockRight = blockIdMap[gridXRight][gridY];
 
             //If either side of the entity would collide with a block when falling, the hundreds place has a one
             //Check that the entity is currently above the block it may fall onto (does not include yPixelsMoved)
@@ -222,14 +268,16 @@ public abstract class Entity
         }
     }
 
-    final protected int getEntityState()
+    /**
+     * Check collisions against an inputted bounding box.
+     * @param otherBoundingBox The bounding box to check collision against.
+     * @param pixelTolerance A tolerance value for the collision.
+     * @return True if the rectangles intersect, false otherwise.
+     */
+    final protected boolean checkCollision(Rectangle otherBoundingBox, int pixelTolerance)
     {
-        return state;
-    }
-
-    final protected void setEntityState(int newState)
-    {
-        state = newState;
+        return (boundingBox.intersects(otherBoundingBox.x + pixelTolerance, otherBoundingBox.y + pixelTolerance,
+                otherBoundingBox.width - pixelTolerance, otherBoundingBox.height - pixelTolerance));
     }
 
     /**
@@ -285,15 +333,32 @@ public abstract class Entity
         return setGraphicsState(newGraphicsState);
     }
 
+    /**
+     * Set the spawn position for the entity.
+     * @param newX The new x position.
+     * @param newY The new y position.
+     */
     final protected void setSpawnPosition(int newX, int newY)
     {
         spawnPoint = new Point(newX, newY);
         boundingBox.setLocation(spawnPoint);
     }
 
-    final protected boolean checkCollision(Rectangle otherBoundingBox, int pixelTolerance)
+    /**
+     * Get the current state of the entity.
+     * @return The entity's game state.
+     */
+    final protected int getEntityState()
     {
-        return (boundingBox.intersects(otherBoundingBox.x + pixelTolerance, otherBoundingBox.y + pixelTolerance,
-                otherBoundingBox.width - pixelTolerance, otherBoundingBox.height - pixelTolerance));
+        return state;
+    }
+
+    /**
+     * Set the current state of the entity.
+     * @param newState The entity's new game state.
+     */
+    final protected void setEntityState(int newState)
+    {
+        state = newState;
     }
 }

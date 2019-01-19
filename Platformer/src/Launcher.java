@@ -1,9 +1,17 @@
 import javax.swing.*;
-
+/**
+ * @author Logan Karstetter
+ * Date: 2018
+ */
 public class Launcher extends JFrame
 {
+    /** The default and recommend FPS value */
     private static final int DEFAULT_FPS = 30;
 
+    /**
+     * Create a launcher for launching the game.
+     * @param framesPerSecond The desired FPS.
+     */
     public Launcher(int framesPerSecond)
     {
         super("");
@@ -20,6 +28,10 @@ public class Launcher extends JFrame
         setLocationRelativeTo(null);
     }
 
+    /**
+     * Reads command line arguments and starts the game.
+     * @param args The command line argument for the FPS.
+     */
     public static void main(String[] args)
     {
         //Read FPS argument from command line

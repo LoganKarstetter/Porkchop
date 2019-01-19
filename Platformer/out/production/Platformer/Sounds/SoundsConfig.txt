@@ -2,3 +2,4 @@
 chicken.wav
 Pop.wav
 Squeal.wav
+Poof.wav

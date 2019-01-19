@@ -1,11 +1,21 @@
 import java.awt.*;
 import java.util.HashMap;
-
+/**
+ * @author Logan Karstetter
+ * Date: 2018
+ */
 public class GameCamera
 {
+    /** The rectangle view that the camera is displaying on the screen */
     private Rectangle cameraView;
+    /** The dimensions of the current level in pixels, from the first block to the last */
     private Point mapDimensions;
 
+    /**
+     * Create a new game camera.
+     * @param mapWidthInPixels The width of the map in pixels.
+     * @param maxHeightInPixels The height of the map in pixels.
+     */
     public GameCamera(int mapWidthInPixels, int maxHeightInPixels)
     {
         //Set up the camera view
@@ -13,6 +23,11 @@ public class GameCamera
         mapDimensions = new Point(mapWidthInPixels, maxHeightInPixels);
     }
 
+    /**
+     * Update the game camera using the player's location. This method re-calculates the
+     * offsets used to position the player in the center of the screen.
+     * @param playerLocation The position of the player relative to the map.
+     */
     public void update(Point playerLocation)
     {
         //Set camera offsets to zero if the player is to the left of the middle of the screen
@@ -55,6 +70,19 @@ public class GameCamera
         cameraView.y = -cameraView.y;
     }
 
+    /**
+     * Draw everything that is contained within the view of the game camera.
+     * @param dbGraphics The graphics object used to draw.
+     * @param blockIdMap The condensed map of block id's that only contains 1's for solid blocks and 0's for transparent air blocks.
+     * @param blocks The map of block id's to actual block graphics.
+     * @param enemies The enemies present in the current level.
+     * @param numEnemies The number of enemies.
+     * @param player The player.
+     * @param eventBlocks The event blocks present in the current level.
+     * @param numEventBlocks The number of event blocks.
+     * @param ribbons The background ribbons.
+     * @param numRibbons The number of ribbons.
+     */
     public void draw(Graphics dbGraphics, int[][] blockIdMap, HashMap<Integer, Block> blocks,
                      Enemy[] enemies, int numEnemies, Player player, EventBlock[] eventBlocks,
                      int numEventBlocks, Ribbon[] ribbons, int numRibbons)
@@ -97,12 +125,22 @@ public class GameCamera
         player.draw(dbGraphics, cameraView.x, cameraView.y);
     }
 
+    /**
+     * Set the map dimensions. This method should be called
+     * every time a new level is loaded. Otherwise the camera
+     * will be unable to properly calculate the offsets.
+     * @param newMapX The new width of the map in pixels.
+     * @param newMapY The new height of the map in pixels.
+     */
     public void setMapDimensions(int newMapX, int newMapY)
     {
         mapDimensions.x = newMapX;
         mapDimensions.y = newMapY;
     }
 
+    /**
+     * Reset the camera's offsets to zero.
+     */
     public void resetCamera()
     {
         cameraView.x = 0;

@@ -1,14 +1,33 @@
 import java.awt.*;
 import java.util.HashMap;
-
+/**
+ * @author Logan Karstetter
+ * Date: 2018
+ */
 public class Player extends Entity implements AnimationWatcher
 {
+    /** The maximum number of game cycles that the player can be rising without falling */
     private static final int MAX_JUMPING_UPDATES = 14;
+
+    /** The number of updates where the player has been jumping */
     private int numOfJumpingUpdates;
+    /** The inputComponent that process user input */
     private InputComponent inputComponent;
+    /** The soundManager that plays game sounds */
     private SoundManager soundManager;
+    /** The watcher that is notified when the player triggers level events */
     private LevelWatcher levelWatcher;
 
+    /**
+     * Create a new player.
+     * @param x The x spawn position of the player.
+     * @param y The y spawn position of the player.
+     * @param speedInPixels The player's movement speed in pixels.
+     * @param defaultGraphicsState The default graphics state that the player assumes.
+     * @param playerSpecificGraphics The map of graphics states and animations for the player.
+     * @param playerInputComponent The inputComponent that processes user input.
+     * @param playerSoundManager The soundManager that plays game sounds.
+     */
     public Player(int x, int y, int speedInPixels, int defaultGraphicsState, HashMap<Integer, Animation> playerSpecificGraphics,
                   InputComponent playerInputComponent, SoundManager playerSoundManager)
     {
@@ -31,6 +50,19 @@ public class Player extends Entity implements AnimationWatcher
         spawnPoint = new Point(x, y);
     }
 
+    /**
+     * Update the player. This method updates processes user input, updates the player's animations,
+     * moves the player, and finally returns the player's new location.
+     * @param blockMap The grid of id's specifying which blocks are solid and which are not.
+     * @param enemies The enemies present in the current level.
+     * @param numOfEnemies The number of enemies.
+     * @param eventBlocks The number of event blocks in the current level.
+     * @param numEventBlocks The number of event blocks.
+     * @param ribbons The ribbons draw in the background of the current level.
+     * @param numRibbons The number of ribbons.
+     * @param loopPeriodInMs The loop period of the game cycle.
+     * @return The player's new position.
+     */
     public Point update(int[][] blockMap, Enemy[] enemies, int numOfEnemies, EventBlock[] eventBlocks,
                         int numEventBlocks, Ribbon[] ribbons, int numRibbons, long loopPeriodInMs)
     {
@@ -40,60 +72,16 @@ public class Player extends Entity implements AnimationWatcher
         return boundingBox.getLocation();
     }
 
-    private void checkEnemyCollisions(Enemy[] enemies, int numEnemies)
-    {
-        for (int i = 0; i < numEnemies; i++)
-        {
-            if (checkCollision(enemies[i].boundingBox, 10) && enemies[i].getEntityState() != DEAD_STATE)
-            {
-                numOfJumpingUpdates = 0; //Clear jumping
-
-                //If the player has landed on the enemy, kill the enemy
-                if ((boundingBox.y + boundingBox.height/2) <= enemies[i].boundingBox.y)
-                {
-                    enemies[i].setEntityState(DEAD_STATE);
-                    levelWatcher.enemyDefeated();
-                    state = JUMPING_STATE;
-                }
-                else //Kill the player
-                {
-                    state = DEAD_STATE;
-                }
-            }
-        }
-    }
-
-    private boolean checkEventBlockCollisions(EventBlock[] eventBlocks, int numEventBlocks)
-    {
-        for (int i = 0; i < numEventBlocks; i++)
-        {
-            if (checkCollision(eventBlocks[i].getBoundingBox(), 30))
-            {
-                //Perform various actions depending on the block type
-                if (eventBlocks[i].getBlockType() == EventBlock.BLOCK_LEVEL)
-                {
-                    //Transition to the next level
-                    state = NORMAL_STATE;
-                    levelWatcher.changeToNextLevel(inputComponent);
-                    return true;
-                }
-                else if (eventBlocks[i].getBlockType() == EventBlock.BLOCK_DANGER)
-                {
-                    //Kill the player
-                    state = DEAD_STATE;
-                }
-                else if (eventBlocks[i].getBlockType() == EventBlock.BLOCK_COLLECT)
-                {
-                    //Inform the game that an item was collected
-                    soundManager.playSound("Pop", false);
-                    eventBlocks[i].activate();
-                    levelWatcher.itemCollected();
-                }
-            }
-        }
-        return false;
-    }
-
+    /**
+     * Move the player and check for collisions according to its state.
+     * @param blockMap The grid of id's specifying which blocks are solid and which are not.
+     * @param enemies The enemies present in the current level.
+     * @param numEnemies The number of enemies.
+     * @param eventBlocks The number of event blocks in the current level.
+     * @param numEventBlocks The number of event blocks.
+     * @param ribbons The ribbons draw in the background of the current level.
+     * @param numRibbons The number of ribbons.
+     */
     private void move(int[][] blockMap, Enemy[] enemies, int numEnemies, EventBlock[] eventBlocks,
                       int numEventBlocks, Ribbon[] ribbons, int numRibbons)
     {
@@ -106,14 +94,14 @@ public class Player extends Entity implements AnimationWatcher
                 return; //If a new level has loaded, skip the movement this update
 
             //Default ribbons to not scroll
-            changeRibbonScrollDirection(ribbons, numRibbons, Ribbon.SCROLL_STILL);
+            levelWatcher.changeRibbonScrollDirection(Ribbon.SCROLL_STILL);
 
             //Attempt to move depending on direction
             if (inputComponent.left)
             {
                 if (!moveHorizontal(blockMap, -speed)) //Move ribbons only if there was no collision
                 {
-                    changeRibbonScrollDirection(ribbons, numRibbons, Ribbon.SCROLL_RIGHT);
+                    levelWatcher.changeRibbonScrollDirection(Ribbon.SCROLL_RIGHT);
                 }
                 if (state != FALLING_STATE && state != JUMPING_STATE) //Graphics change
                 {
@@ -125,7 +113,7 @@ public class Player extends Entity implements AnimationWatcher
             {
                 if (!moveHorizontal(blockMap, speed)) //Move ribbons only if there was no collision
                 {
-                    changeRibbonScrollDirection(ribbons, numRibbons, Ribbon.SCROLL_LEFT);
+                    levelWatcher.changeRibbonScrollDirection(Ribbon.SCROLL_LEFT);
                 }
                 if (state != FALLING_STATE && state != JUMPING_STATE)
                 {
@@ -202,9 +190,9 @@ public class Player extends Entity implements AnimationWatcher
                 boundingBox.y = (boundingBox.y / Block.BLOCK_HEIGHT) * Block.BLOCK_HEIGHT;
 
                 //Play the death sound
-                soundManager.playSound("Squeal", false);
+                soundManager.playSound("Poof", false);
             }
-            changeRibbonScrollDirection(ribbons, numRibbons, Ribbon.SCROLL_STILL);
+            levelWatcher.changeRibbonScrollDirection(Ribbon.SCROLL_STILL);
 
             if (!waitingForAnimation)
             {
@@ -216,43 +204,93 @@ public class Player extends Entity implements AnimationWatcher
                 numOfJumpingUpdates = 0;
                 boundingBox.setLocation(spawnPoint);
                 setGraphicsState(Entity.IDLE_RIGHT_GRAPHICS);
-                resetRibbons(ribbons, numRibbons);
-                resetEnemies(enemies, numEnemies);
             }
         }
     }
 
-    private void changeRibbonScrollDirection(Ribbon[] ribbons, int numRibbons, int newScrollDirection)
-    {
-        //Set the ribbon scroll direction
-        for (int i = 0; i < numRibbons; i++)
-        {
-            ribbons[i].setScrollDirection(newScrollDirection);
-        }
-    }
-
-    public void resetEnemies(Enemy[] enemies, int numEnemies)
+    /**
+     * Check if the enemy has collided with an enemies. If the player has collided with
+     * an enemy, but either jumped/fell on top of them, then the enemy will be killed. Otherwise,
+     * the player will be killed.
+     **@param enemies The enemies present in the current level.
+     * @param numOfEnemies The number of enemies.
+     */
+    private void checkEnemyCollisions(Enemy[] enemies, int numEnemies)
     {
         for (int i = 0; i < numEnemies; i++)
         {
-            enemies[i].reset();
+            if (checkCollision(enemies[i].boundingBox, 10) && enemies[i].getEntityState() != DEAD_STATE)
+            {
+                numOfJumpingUpdates = 0; //Clear jumping
+
+                //If the player has landed on the enemy, kill the enemy
+                if ((boundingBox.y + boundingBox.height/2) <= enemies[i].boundingBox.y)
+                {
+                    enemies[i].setEntityState(DEAD_STATE);
+                    soundManager.playSound("Poof", false);
+                    levelWatcher.enemyDefeated();
+                    state = JUMPING_STATE;
+                }
+                else //Kill the player
+                {
+                    state = DEAD_STATE;
+                }
+            }
         }
     }
 
-    private void resetRibbons(Ribbon[] ribbons, int numRibbons)
+    /**
+     * Check if the player has interacted with any event blocks.
+     * @param eventBlocks The number of event blocks in the current level.
+     * @param numEventBlocks The number of event blocks.
+     * @return True if the player has triggered the start of the next level, false otherwise.
+     */
+    private boolean checkEventBlockCollisions(EventBlock[] eventBlocks, int numEventBlocks)
     {
-        //Set the ribbon scroll direction
-        for (int i = 0; i < numRibbons; i++)
+        for (int i = 0; i < numEventBlocks; i++)
         {
-            ribbons[i].reset();
+            if (checkCollision(eventBlocks[i].getBoundingBox(), 30))
+            {
+                //Perform various actions depending on the block type
+                if (eventBlocks[i].getBlockType() == EventBlock.BLOCK_LEVEL)
+                {
+                    //Transition to the next level
+                    state = NORMAL_STATE;
+                    levelWatcher.changeToNextLevel(inputComponent);
+                    return true;
+                }
+                else if (eventBlocks[i].getBlockType() == EventBlock.BLOCK_DANGER)
+                {
+                    //Kill the player
+                    state = DEAD_STATE;
+                }
+                else if (eventBlocks[i].getBlockType() == EventBlock.BLOCK_COLLECT)
+                {
+                    //Inform the game that an item was collected
+                    soundManager.playSound("Pop", false);
+                    eventBlocks[i].activate();
+                    levelWatcher.itemCollected();
+                }
+            }
         }
+        return false;
     }
 
+    /**
+     * Draw the player.
+     * @param dbGraphics The graphics object used to draw the player.
+     * @param xOffset The x offset added to the player's x coordinate to determine where to draw it.
+     * @param yOffset The y offset added to the player's y coordinate to determine where to draw it.
+     */
     public void draw(Graphics dbGraphics, int xOffset, int yOffset)
     {
         graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset, elapsedAnimationTimeInMs);
     }
 
+    /**
+     * This method is called when an player's death animation ends. It sets a flag
+     * specifying that the player can respawn without interrupting.
+     */
     public void animationHasEnded()
     {
         if (waitingForAnimation)
@@ -261,6 +299,10 @@ public class Player extends Entity implements AnimationWatcher
         }
     }
 
+    /**
+     * Set the level watcher to notify when level event occur.
+     * @param gameLevelWatcher The level watcher.
+     */
     public void setLevelWatcher(LevelWatcher gameLevelWatcher)
     {
         levelWatcher = gameLevelWatcher;

@@ -1,21 +1,36 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
-
+/**
+ * @author Logan Karstetter
+ * Date: 2018
+ */
 public class GamePanel extends JPanel implements Runnable
 {
+    /** The width of the game panel */
     public static final int WIDTH = 600;
+    /** The height of the game panel */
     public static final int HEIGHT = 600;
 
+    /** The thread that runs the animation loop */
     private Thread animator;
+    /** The amount of time allocated for each cycle of the game loop (in nanos) */
     private long loopPeriod;
-    private boolean isRunning;
+    /** Determines whether the animator thread is running */
+    private volatile boolean isRunning;
 
+    /** The Graphics used to double buffer/render the screen */
     private Graphics dbGraphics;
+    /** The image that is created/rendered offscreen and later painted to the screen */
     private Image dbImage;
 
+    /** The game object that is actually "played" */
     private Game game;
 
+    /**
+     * Create a new game panel and subsequent game.
+     * @param framesPerSecond The desired FPS to run at. (30)
+     */
     public GamePanel(int framesPerSecond)
     {
         //Calculate nanoseconds per game loop cycle
@@ -37,6 +52,12 @@ public class GamePanel extends JPanel implements Runnable
         game = new Game("Levels/LevelsConfig.txt", userInputComponent);
     }
 
+    /**
+     * Notifies this component that it now has a parent component.
+     * This method informs the GamePanel that it has been added to a
+     * parent container such as a JFrame. Once notified it starts the
+     * game. This prevents the game starting before the user can see it.
+     */
     public void addNotify()
     {
         super.addNotify();
@@ -47,11 +68,18 @@ public class GamePanel extends JPanel implements Runnable
         }
     }
 
+    /**
+     * Stop the game, set isRunning to false.
+     */
     public void stopGame()
     {
         isRunning = false;
     }
 
+    /**
+     * Repeatably update, render, paint, and sleep such that the game loop takes close to the amount of
+     * time allotted by the desired FPS (loopPeriod).
+     */
     public void run()
     {
         long timeBeforeLoop; //The time measured before the game methods are called
@@ -121,11 +149,20 @@ public class GamePanel extends JPanel implements Runnable
         System.exit(0);
     }
 
+    /**
+     * Update the game as long as the game is not over or paused.
+     */
     private void gameUpdate()
     {
         game.update(loopPeriod);
     }
 
+    /**
+     * Render the game using double buffering. If it does not already exist, this
+     * method creates an Image the size of the GamePanel and draws to it offscreen.
+     * Drawing offscreen prevents flickering and then allows the paintScreen() method
+     * to draw the entire screen as an image rather than in layers.
+     */
     private void gameRender()
     {
         //If the double buffered image is null, define it
@@ -150,6 +187,9 @@ public class GamePanel extends JPanel implements Runnable
         game.draw(dbGraphics);
     }
 
+    /**
+     * Actively render/draw the dbImage (created in gameRender()) onto the screen/AsteroidRunPanel.
+     */
     private void paintScreen()
     {
         try

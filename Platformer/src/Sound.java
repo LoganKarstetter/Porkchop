@@ -1,14 +1,27 @@
 import javax.sound.sampled.*;
 import java.io.IOException;
-
+/**
+ * @author Logan Karstetter
+ * Date: 2018
+ */
 public class Sound implements LineListener
 {
+    /** The name of the sound */
     private String soundName;
+    /** The sound clip */
     private Clip soundClip;
+    /** The duration of the sound in seconds */
     private int durationInSecs;
+    /** Flag specifying if the sound is looping */
     private boolean isLoopingSound;
+    /** The watcher that is notified when sound events occur */
     private SoundWatcher soundWatcher;
 
+    /**
+     * Create a new sound.
+     * @param nameOfSound The name of the sound.
+     * @param filePath The file path to the sound's location.
+     */
     public Sound(String nameOfSound, String filePath)
     {
         //Store the sound data
@@ -22,6 +35,11 @@ public class Sound implements LineListener
         }
     }
 
+    /**
+     * Load the sound from the passed filePath.
+     * @param filePath The file path to the sound to load.
+     * @return True if the sound is loaded, false otherwise.
+     */
     private boolean loadSound(String filePath)
     {
         try
@@ -76,7 +94,12 @@ public class Sound implements LineListener
         return false;
     }
 
-    //Called when the soundClip's line detects open, start, stop, and close events
+    /**
+     * This method is called when the sound clip's line detects open, start, stop,
+     * and close events. This not a typical update method that needs to be called
+     * for sounds to work.
+     * @param lineEvent The line event that occurred.
+     */
     public void update(LineEvent lineEvent)
     {
         //If a soundsClip has stopped or reached its end
@@ -98,21 +121,29 @@ public class Sound implements LineListener
         }
     }
 
-    public void setSoundWatcher(SoundWatcher soundClipWatcher)
-    {
-        soundWatcher = soundClipWatcher;
-    }
-
+    /**
+     * Play the sound. If the sound is already playing, restart it.
+     * @param loopSound Flag specifying if the sound should loop.
+     */
     public void play(boolean loopSound)
     {
         //Play the sound
         if (soundClip != null)
         {
+            //If the sound is already playing, restart it
+            if (soundClip.getFramePosition() > 0)
+            {
+                soundClip.stop();
+                soundClip.setFramePosition(0);
+            }
             soundClip.start();
             isLoopingSound = loopSound;
         }
     }
 
+    /**
+     * Pause the sound.
+     */
     public void pause()
     {
         //Pause the clip
@@ -122,6 +153,9 @@ public class Sound implements LineListener
         }
     }
 
+    /**
+     * Resume the sound.
+     */
     public void resume()
     {
         //Play the sound
@@ -131,6 +165,9 @@ public class Sound implements LineListener
         }
     }
 
+    /**
+     * Stop and reset the sound.
+     */
     public void stop()
     {
         //Stop and reset the sound
@@ -142,6 +179,9 @@ public class Sound implements LineListener
         }
     }
 
+    /**
+     * Stop and close the sound.
+     */
     public void close()
     {
         if (soundClip != null)
@@ -149,5 +189,14 @@ public class Sound implements LineListener
             soundClip.stop();
             soundClip.close();
         }
+    }
+
+    /**
+     * Set the sound watcher for this sound.
+     * @param soundClipWatcher The sound clip watcher to notify.
+     */
+    public void setSoundWatcher(SoundWatcher soundClipWatcher)
+    {
+        soundWatcher = soundClipWatcher;
     }
 }

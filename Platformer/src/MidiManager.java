@@ -4,22 +4,38 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
-
+/**
+ * @author Logan Karstetter
+ * Date: 2018
+ */
 public class MidiManager implements MetaEventListener
 {
+    /** The constant representing the end of track meta event */
     private static final int META_END_OF_TRACK = 47; //0x2f
 
+    /** The name of the directory that contains the config and midi files */
     private String directory = "Midi/";
+    /** The Midi sequencer */
     private Sequencer sequencer;
+    /** The currently playing or paused midi sequence */
     private MidiSequence currentSequence;
+    /** Maps sequence names to midi sequences */
     private HashMap<String, MidiSequence> sequenceMap;
+    /** The object to notify when sequence events occur */
     private SoundWatcher sequenceWatcher;
+    /** Flag specifiying if the music is enabled or disabled */
+    private boolean musicEnabled;
 
+    /**
+     * Create a new MidiManager that loads and manages midi sequences
+     * @param midiConfigFile The name of the midi config file.
+     */
     public MidiManager(String midiConfigFile)
     {
         //Setup the sequenceMap
         sequenceMap = new HashMap<>();
         currentSequence = null;
+        musicEnabled = true;
 
         //Initialize the sequencer, if successful, load sequences
         if (initializeSequencer())
@@ -28,6 +44,10 @@ public class MidiManager implements MetaEventListener
         }
     }
 
+    /**
+     * Initialize the midi sequencer.
+     * @return True on success, false otherwise.
+     */
     private boolean initializeSequencer()
     {
         try
@@ -67,6 +87,10 @@ public class MidiManager implements MetaEventListener
         return false;
     }
 
+    /**
+     * Load the configured midi sequences from the passed file.
+     * @param fileName The path or name of the midi config file to read.
+     */
     private void loadSequencesFromFile(String fileName)
     {
         //Inform the user of the file reading
@@ -122,7 +146,10 @@ public class MidiManager implements MetaEventListener
         }
     }
 
-    //Called when a meta event, such as a sequence ending, is triggered
+    /**
+     * This method is called when a meta event, such as a sequence ending, is triggered
+     * @param metaMessage The meta message that describes the event.
+     */
     public void meta(MetaMessage metaMessage)
     {
         //If the meta message signals the end of a sequence
@@ -151,11 +178,16 @@ public class MidiManager implements MetaEventListener
         }
     }
 
-    public void setSoundWatcher(SoundWatcher midiSequenceWatcher)
-    {
-        sequenceWatcher = midiSequenceWatcher;
-    }
-
+    /**
+     * Play the passed sequence. If the sequence exists in the
+     * sequenceMap then the sequence will be played. If the previous
+     * current sequence is playing it will be stopped. Note if music
+     * is currently disabled, the new track will not play, but will
+     * be setup to play when resume() is called.
+     * @param sequenceName The name of the sequence.
+     * @param loopSequence Flag specifying if the sequence should loop.
+     * @return True if the sequence exists, false otherwise.
+     */
     public boolean play(String sequenceName, boolean loopSequence)
     {
         if (sequenceMap.containsKey(sequenceName))
@@ -166,9 +198,13 @@ public class MidiManager implements MetaEventListener
                 currentSequence.stopWithoutNotify();
             }
 
-            //Set the sequence and play it
+            //Set the sequence
             currentSequence = sequenceMap.get(sequenceName);
-            currentSequence.play(loopSequence);
+            //Only play the new sequence if the music is enabled
+            if (musicEnabled)
+            {
+                currentSequence.play(loopSequence);
+            }
             return true;
         }
         else
@@ -179,6 +215,9 @@ public class MidiManager implements MetaEventListener
         return false;
     }
 
+    /**
+     * Pause the current sequence.
+     */
     public void pause()
     {
         //Pause the sequence
@@ -188,15 +227,24 @@ public class MidiManager implements MetaEventListener
         }
     }
 
+    /**
+     * Resume the current sequence.
+     */
     public void resume()
     {
-        //Resume the sequence
-        if (currentSequence != null)
+        if (musicEnabled)
         {
-            currentSequence.resume();
+            //Resume the sequence
+            if (currentSequence != null)
+            {
+                currentSequence.resume();
+            }
         }
     }
 
+    /**
+     * Stop the current sequence.
+     */
     public void stop()
     {
         //Stop the sequence
@@ -206,6 +254,9 @@ public class MidiManager implements MetaEventListener
         }
     }
 
+    /**
+     * Close the sequencer.
+     */
     public void close()
     {
         //Stop the current sequence
@@ -224,5 +275,43 @@ public class MidiManager implements MetaEventListener
             sequencer.close();
             sequencer = null;
         }
+    }
+
+    /**
+     * Enable or disable music playing.
+     * @param musicIsEnabled True if music should be enabled, false otherwise.
+     */
+    public void enableMusic(boolean musicIsEnabled)
+    {
+        //Store the enabled status
+        musicEnabled = musicIsEnabled;
+
+        //Pause any currently playing song if the music is disabled
+        if (!musicEnabled)
+        {
+            pause();
+        }
+        else //Resume playing if the music is re-enabled
+        {
+            resume();
+        }
+    }
+
+    /**
+     * Set a sequence watcher to be notified when sequences end.
+     * @param midiSequenceWatcher The sequence watcher.
+     */
+    public void setSequenceWatcher(SoundWatcher midiSequenceWatcher)
+    {
+        sequenceWatcher = midiSequenceWatcher;
+    }
+
+    /**
+     * Is music enabled or disabled?
+     * @return True if music is enabled, false otherwise.
+     */
+    public boolean isMusicEnabled()
+    {
+        return musicEnabled;
     }
 }

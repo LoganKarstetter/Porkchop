@@ -7,13 +7,26 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
-
+/**
+ * @author Logan Karstetter
+ * Date: 2018
+ */
 public class ImageManager
 {
+    /** The location of the file to load images from */
     private String directory = "Images/";
+    /**
+     * The HashMap used to store loaded images. The key is the image name as
+     * it appeared in the file, and the object stored is an ArrayList of BufferedImages.
+     */
     private HashMap<String, ArrayList<BufferedImage>> imageMap;
+    /** The graphics configuration describing the characteristics of the user's display */
     private GraphicsConfiguration graphicsConfiguration;
 
+    /**
+     * Create an ImageManager for loading images from a file located in the local Images/ directory.
+     * @param imagesConfigFile The name of the images config file to read.
+     */
     public ImageManager(String imagesConfigFile)
     {
         //Setup the image map and graphics configuration
@@ -198,7 +211,12 @@ public class ImageManager
         return null;
     }
 
-
+    /**
+     * Get the sequence of images stored under the passed imageKey (if one exists).
+     * If the sequence does not exist, then this method returns null.
+     * @param imageKey The name of the sequence of images.
+     * @return An arrayList of bufferedImages, or null if the key is invalid.
+     */
     public ArrayList<BufferedImage> getImages(String imageKey)
     {
         //Return the stored array list, check for null

@@ -1,11 +1,24 @@
 import java.awt.*;
 import java.util.HashMap;
-
+/**
+ * @author Logan Karstetter
+ * Date: 2018
+ */
 public class Enemy extends Entity implements AnimationWatcher
 {
+    /** The number of pixels an enemy falls every game loop */
     private static final int ENEMY_VERTICAL_SPEED = 5;
+    /** The flag specifying if this enemy is alive and should be drawn */
     private boolean isActive;
 
+    /**
+     * Create an enemy.
+     * @param x The initial x position to place the enemy at.
+     * @param y The initial y position to place the enemy at.
+     * @param speedInPixels The horizontal movement speed.
+     * @param directionToMove The initial direction to move.
+     * @param enemySpecificGraphics The graphics map for the enemy.
+     */
     public Enemy(int x, int y, int speedInPixels, int directionToMove,
                  HashMap<Integer, Animation> enemySpecificGraphics)
     {
@@ -27,6 +40,13 @@ public class Enemy extends Entity implements AnimationWatcher
         spawnPoint = new Point(x, y);
     }
 
+    /**
+     * Update the enemy's animation time and move it.
+     * @param blockMap The grid of blocks used to check for movement collisions.
+     * @param eventBlocks The event blocks used to check for movement collisions.
+     * @param numEventBlocks The number of event blocks.
+     * @param loopPeriodInMs The loop period of the game cycle.
+     */
     public void update(int[][] blockMap, EventBlock[] eventBlocks, int numEventBlocks, long loopPeriodInMs)
     {
         if (isActive)
@@ -36,6 +56,12 @@ public class Enemy extends Entity implements AnimationWatcher
         }
     }
 
+    /**
+     * Check collisions with event blocks, specifically dangerous blocks. If the
+     * enemy's bounding box intersects the block the enemy will die.
+     * @param eventBlocks The event blocks to check collision for.
+     * @param numEventBlocks The number of event blocks.
+     */
     private void checkEventBlockCollisions(EventBlock[] eventBlocks, int numEventBlocks)
     {
         for (int i = 0; i < numEventBlocks; i++)
@@ -49,6 +75,12 @@ public class Enemy extends Entity implements AnimationWatcher
         }
     }
 
+    /**
+     * Move the enemy according to its state.
+     * @param blockMap The grid of blocks used to check for movement collisions.
+     * @param eventBlocks The event blocks used to check for movement collisions.
+     * @param numEventBlocks The number of event blocks.
+     */
     private void move(int[][] blockMap, EventBlock[] eventBlocks, int numEventBlocks)
     {
         //Allow horizontal movement if enemy is not dead
@@ -126,6 +158,20 @@ public class Enemy extends Entity implements AnimationWatcher
         }
     }
 
+    /**
+     * Draw the enemy.
+     * @param dbGraphics The graphics object that will draw the enemy.
+     * @param xOffset The x position to draw the enemy at on the screen.
+     * @param yOffset The y position to draw the enemy at on the screen.
+     */
+    public void draw(Graphics dbGraphics, int xOffset, int yOffset)
+    {
+        graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset, elapsedAnimationTimeInMs);
+    }
+
+    /**
+     * Reset the enemy. This method essentially re-spawns the enemy.
+     */
     public void reset()
     {
         isActive = true;
@@ -134,11 +180,10 @@ public class Enemy extends Entity implements AnimationWatcher
         boundingBox.setLocation(spawnPoint);
     }
 
-    public void draw(Graphics dbGraphics, int xOffset, int yOffset)
-    {
-        graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset, elapsedAnimationTimeInMs);
-    }
-
+    /**
+     * This method is called when an enemy's death animation ends. It sets a flag
+     * specifying that the enemy no longer needs to be drawn.
+     */
     public void animationHasEnded()
     {
         if (waitingForAnimation)

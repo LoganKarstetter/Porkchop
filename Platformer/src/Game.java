@@ -8,44 +8,79 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author Logan Karstetter
+ * Date: 2018
+ */
 public class Game implements LevelWatcher, MouseWatcher
 {
+    /** The maximum number of enemies in a single level */
     public static final int MAX_ENEMIES = 15;
+    /** The maximum number of event blocks in a single level */
     public static final int MAX_EVENT_BLOCKS = 10;
-    public static final int MAX_RIBBONS = 3;
+    /** The maximum number of ribbons in a single level */
+    public static final int MAX_RIBBONS = 2;
 
+    /** The constant representing the main menu state */
     public static final int MAIN_MENU = 0;
+    /** The constant representing the playing state */
     public static final int PLAYING_GAME = 1;
+    /** The constant representing the final menu state */
     public static final int FINAL_MENU = 2;
+    /** The state of the game */
     private int gameState;
 
+    /** The imageManager that loads and stores all of the game's images */
     private ImageManager imageManager;
+    /** The midiManager that loads and controls all of the midi tracks */
     private MidiManager midiManager;
+    /** The soundManager that loads and controls the sounds */
     private SoundManager soundManager;
+    /** The game camera that calculates the drawing offsets */
     private GameCamera gameCamera;
+    /** The player */
     private Player player;
 
+    /** Look up table of id's read from the levels config to block definitions */
     private HashMap<Integer, Block> blocks;
+    /** The raw map level data read from the levels config */
     private ArrayList<int[][]> levelMaps;
+    /** The name's of songs to be played at each level */
+    private String[] levelSongs;
 
+    /** The enemies present in the current level */
     private Enemy[] enemies;
+    /** The event blocks present in the current level */
     private EventBlock[] eventBlocks;
+    /** The ribbons draw in the background of the current level */
     private Ribbon[] ribbons;
 
+    /** The current number of enemies */
     private int numEnemies;
+    /** The current number of event blocks */
     private int numEventBlocks;
+    /** The current number of ribbons */
     private int numRibbons;
+    /** The current level */
     private int currentLevel;
+    /** The number of carrots collected this game */
     private int numCarrotsCollected;
+    /** The decimal place values of the number of carrots */
     private int[] numCarrotsValues;
+    /** The number of carrots collected this game */
     private int numEnemiesDefeated;
+    /** The decimal place values of the number of enemies */
     private int[] numEnemiesValues;
+    /** The number of player lives remaining */
     private int numPlayerLives;
+    /** Flag specifying if the golden carrot was found */
     private boolean goldenCarrotFound;
-    private boolean soundDisabled;
-    private boolean musicDisabled;
 
-
+    /**
+     * Create a game.
+     * @param levelsFilePath The path to the LevelsConfig.txt file.
+     * @param playerInputComponent The inputComponent that processes the user's inputs.
+     */
     public Game(String levelsFilePath, InputComponent playerInputComponent)
     {
         //Load the maps from the file path
@@ -64,8 +99,7 @@ public class Game implements LevelWatcher, MouseWatcher
         gameState = MAIN_MENU;
 
         //Enable the sound and music
-        soundDisabled = false;
-        musicDisabled = false;
+        levelSongs = new String[]{ "takemehomecountryroads", "dancinginthedark" };
 
         //Setup mouse event monitoring
         playerInputComponent.setMouseWatcher(this);
@@ -74,6 +108,10 @@ public class Game implements LevelWatcher, MouseWatcher
         initializeLevel(playerInputComponent);
     }
 
+    /**
+     * Initialize the current level.
+     * @param playerInputComponent The inputComponent that processes the user's inputs.
+     */
     private void initializeLevel(InputComponent playerInputComponent)
     {
         //Create/clear the enemies, eventBlocks, and ribbons
@@ -289,119 +327,10 @@ public class Game implements LevelWatcher, MouseWatcher
         }
     }
 
-    @Override
-    public void changeToNextLevel(InputComponent playerInputComponent)
-    {
-        //Increment the level number and check if the game has ended
-        currentLevel++;
-        if (currentLevel < levelMaps.size())
-        {
-            //Player is not re-initialized, so an input component is not needed
-            initializeLevel(null);
-        }
-        else
-        {
-            //The Golden Carrot was found
-            goldenCarrotFound = true;
-            gameOver();
-        }
-    }
-
-    @Override
-    public void itemCollected()
-    {
-        //Increment the number of carrots collected
-        numCarrotsCollected++;
-
-        if (numCarrotsCollected < 1000)
-        {
-            //Determine the values in the hundreds, tens, and ones places
-            numCarrotsValues[2] = numCarrotsCollected/100 % 10; //Hundreds
-            numCarrotsValues[1] = numCarrotsCollected/10 % 10; //Tens
-            numCarrotsValues[0] = numCarrotsCollected % 10; //Ones
-        }
-        else //We've got too many carrots
-        {
-            numCarrotsValues[2] = 9; //Hundreds
-            numCarrotsValues[1] = 9; //Tens
-            numCarrotsValues[0] = 9; //Ones
-        }
-    }
-
-    @Override
-    public void enemyDefeated()
-    {
-        //Increment the number of enemies defeated
-        numEnemiesDefeated++;
-
-        if (numEnemiesDefeated < 1000)
-        {
-            //Determine the values in the hundreds, tens, and ones places
-            numEnemiesValues[2] = numEnemiesDefeated/100 % 10; //Hundreds
-            numEnemiesValues[1] = numEnemiesDefeated/10 % 10; //Tens
-            numEnemiesValues[0] = numEnemiesDefeated % 10; //Ones
-        }
-        else //We've are a beast
-        {
-            numEnemiesValues[2] = 9; //Hundreds
-            numEnemiesValues[1] = 9; //Tens
-            numEnemiesValues[0] = 9; //Ones
-        }
-    }
-
-    @Override
-    public void playerHasDied()
-    {
-        //Subtract a life
-        numPlayerLives--;
-
-        //If the player has lost all its lives, game over
-        if (numPlayerLives < 0)
-        {
-            gameOver();
-        }
-    }
-
-    @Override
-    public void mouseClicked(Point mousePosition, InputComponent playerInputComponent)
-    {
-        //Determine actions based on game state
-        if (gameState == MAIN_MENU || gameState == FINAL_MENU)
-        {
-            //Start/Restart button (coordinates from GIMP)
-            if (new Rectangle(218, 549, 64, 42).contains(mousePosition))
-            {
-                initializeLevel(playerInputComponent);
-                gameState = PLAYING_GAME;
-            }
-
-            //Quit button
-            if (new Rectangle(318, 549, 64, 42).contains(mousePosition))
-            {
-                System.exit(0);
-            }
-        }
-
-        //Sound button
-        if (new Rectangle(563, 0, 18, 19).contains(mousePosition))
-        {
-            soundDisabled = !soundDisabled;
-        }
-
-        //Music button
-        if (new Rectangle(581, 0, 18, 19).contains(mousePosition))
-        {
-            musicDisabled = !musicDisabled;
-        }
-    }
-
-    public void gameOver()
-    {
-        //Set the state to the final menu
-        currentLevel = 0;
-        gameState = FINAL_MENU;
-    }
-
+    /**
+     * Update the game. This method drives the updates to the player, enemies, everything.
+     * @param loopPeriodInNanos The loop period of the game loop in nanoseconds.
+     */
     public void update(long loopPeriodInNanos)
     {
         //Update the game according to the gameState
@@ -432,6 +361,11 @@ public class Game implements LevelWatcher, MouseWatcher
         }
     }
 
+    /**
+     * Draw the game. This method draws all of the components in the game depending on the
+     * current game state.
+     * @param dbGraphics The graphics object used to draw the game.
+     */
     public void draw(Graphics dbGraphics)
     {
         //Draw the game according to the gameState
@@ -505,18 +439,193 @@ public class Game implements LevelWatcher, MouseWatcher
         }
 
         //Draw the sound and music disabled symbols if necessary
-        if (musicDisabled)
+        if (!midiManager.isMusicEnabled())
         {
             dbGraphics.drawImage(imageManager.getImages("Music Symbol Disabled").get(0),
                     GamePanel.WIDTH - imageManager.getImages("Music Symbol Disabled").get(0).getWidth(), 0, null);
         }
-        if (soundDisabled) //Add two to the sound disabled symbol so that it overlaps with the music symbol correctly
+        if (!soundManager.isSoundEnabled()) //Add two to the sound disabled symbol so that it overlaps with the music symbol correctly
         {
             dbGraphics.drawImage(imageManager.getImages("Sound Symbol Disabled").get(0),
                     GamePanel.WIDTH - (imageManager.getImages("Sound Symbol Disabled").get(0).getWidth() * 2) + 2, 0, null);
         }
     }
 
+    /**
+     * Process mouse input according to the game's current state.
+     * @param mousePosition The point on the screen that the mouse was clicked.
+     * @param playerInputComponent The inputComponent that processes the user's inputs.
+     */
+    @Override
+    public void mouseClicked(Point mousePosition, InputComponent playerInputComponent)
+    {
+        //Determine actions based on game state
+        if (gameState == MAIN_MENU || gameState == FINAL_MENU)
+        {
+            //Start/Restart button (coordinates from GIMP)
+            if (new Rectangle(218, 549, 64, 42).contains(mousePosition))
+            {
+                initializeLevel(playerInputComponent);
+                midiManager.play(levelSongs[currentLevel], false);
+                gameState = PLAYING_GAME;
+            }
+
+            //Quit button
+            if (new Rectangle(318, 549, 64, 42).contains(mousePosition))
+            {
+                System.exit(0);
+            }
+        }
+
+        //Sound button
+        if (new Rectangle(563, 0, 18, 19).contains(mousePosition))
+        {
+            soundManager.enableSound(!soundManager.isSoundEnabled());
+        }
+
+        //Music button
+        if (new Rectangle(581, 0, 18, 19).contains(mousePosition))
+        {
+            midiManager.enableMusic(!midiManager.isMusicEnabled());
+        }
+    }
+
+    /**
+     * Change to the next level. If the next level does not exist, then
+     * the game ends.
+     * @param playerInputComponent The inputComponent that processes the user's inputs.
+     */
+    @Override
+    public void changeToNextLevel(InputComponent playerInputComponent)
+    {
+        //Increment the level number and check if the game has ended
+        currentLevel++;
+        if (currentLevel < levelMaps.size())
+        {
+            //Player is not re-initialized, so an input component is not needed
+            initializeLevel(null);
+            midiManager.play(levelSongs[currentLevel], false);
+        }
+        else
+        {
+            //The Golden Carrot was found
+            goldenCarrotFound = true;
+            gameOver();
+        }
+    }
+
+    /**
+     * Increment the number of carrots collected. This method also calculates
+     * the decimal place values of the numCarrotsCollected so that they can be
+     * printed nicely on the final menu.
+     */
+    @Override
+    public void itemCollected()
+    {
+        //Increment the number of carrots collected
+        numCarrotsCollected++;
+
+        if (numCarrotsCollected < 1000)
+        {
+            //Determine the values in the hundreds, tens, and ones places
+            numCarrotsValues[2] = numCarrotsCollected/100 % 10; //Hundreds
+            numCarrotsValues[1] = numCarrotsCollected/10 % 10; //Tens
+            numCarrotsValues[0] = numCarrotsCollected % 10; //Ones
+        }
+        else //We've got too many carrots
+        {
+            numCarrotsValues[2] = 9; //Hundreds
+            numCarrotsValues[1] = 9; //Tens
+            numCarrotsValues[0] = 9; //Ones
+        }
+    }
+
+    /**
+     * Increment the number of enemies defeated. This method also calculates
+     * the decimal place values of the numEnemiesDefeated so that they can be
+     * printed nicely on the final menu.
+     */
+    @Override
+    public void enemyDefeated()
+    {
+        //Increment the number of enemies defeated
+        numEnemiesDefeated++;
+
+        if (numEnemiesDefeated < 1000)
+        {
+            //Determine the values in the hundreds, tens, and ones places
+            numEnemiesValues[2] = numEnemiesDefeated/100 % 10; //Hundreds
+            numEnemiesValues[1] = numEnemiesDefeated/10 % 10; //Tens
+            numEnemiesValues[0] = numEnemiesDefeated % 10; //Ones
+        }
+        else //We've are a beast
+        {
+            numEnemiesValues[2] = 9; //Hundreds
+            numEnemiesValues[1] = 9; //Tens
+            numEnemiesValues[0] = 9; //Ones
+        }
+    }
+
+    /**
+     * Decrement the number of player lives. If the player
+     * is out of lives, then the game ends.
+     */
+    @Override
+    public void playerHasDied()
+    {
+        //Subtract a life
+        numPlayerLives--;
+
+        //If the player has lost all its lives, game over
+        if (numPlayerLives < 0)
+        {
+            gameOver();
+        }
+        else
+        {
+            //Reset the enemies and ribbons
+            for (int i = 0; i < numEnemies; i++)
+            {
+                enemies[i].reset();
+            }
+            for (int i = 0; i < numRibbons; i++)
+            {
+                ribbons[i].reset();
+            }
+        }
+
+    }
+
+    /**
+     * Change the scrolling direction of the background ribbons. The player drives this action
+     * since it is based on its movement.
+     * @param newScrollDirection The new direction the ribbon should scroll.
+     */
+    public void changeRibbonScrollDirection(int newScrollDirection)
+    {
+        //Set the ribbon scroll direction
+        for (int i = 0; i < numRibbons; i++)
+        {
+            ribbons[i].setScrollDirection(newScrollDirection);
+        }
+    }
+
+    /**
+     * End the game and transition the state to the final menu.
+     */
+    public void gameOver()
+    {
+        //Set the state to the final menu
+        midiManager.pause();
+        currentLevel = 0;
+        gameState = FINAL_MENU;
+    }
+
+    /**
+     * Load the game levels from the specified filePath.
+     * @param filePath The path to the levels config file.
+     * @return An arrayList containing the raw data for each level.
+     */
     private ArrayList<int[][]> loadGameLevels(String filePath)
     {
         //An ArrayList of the loaded game levelManagers
@@ -592,6 +701,13 @@ public class Game implements LevelWatcher, MouseWatcher
         return null;
     }
 
+    /**
+     * Add a new enemy to the enemies array. If the array is
+     * full then this method returns false. Otherwise, the enemy
+     * is added and it returns true.
+     * @param enemyToAdd The new enemy.
+     * @return True if the enemy is added, false otherwise.
+     */
     private boolean addEnemy(Enemy enemyToAdd)
     {
         //Add the new enemy if possible
@@ -604,6 +720,13 @@ public class Game implements LevelWatcher, MouseWatcher
         return false;
     }
 
+    /**
+     * Add a new event block to the eventBlocks array. If the array is
+     * full then this method returns false. Otherwise, the block
+     * is added and it returns true.
+     * @param blockToAdd The new event block.
+     * @return True if the block is added, false otherwise.
+     */
     private boolean addEventBlock(EventBlock blockToAdd)
     {
         //Add the new event block if possible
@@ -616,6 +739,13 @@ public class Game implements LevelWatcher, MouseWatcher
         return false;
     }
 
+    /**
+     * Add a new ribbon to the ribbons array. If the array is
+     * full then this method returns false. Otherwise, the ribbon
+     * is added and it returns true.
+     * @param ribbonToAdd The new event block.
+     * @return True if the ribbon is added, false otherwise.
+     */
     private boolean addRibbon(Ribbon ribbonToAdd)
     {
         //Add the new ribbon if possible
@@ -628,13 +758,18 @@ public class Game implements LevelWatcher, MouseWatcher
         return false;
     }
 
+    /** This method is not used and does nothing */
     public void mouseClicked(MouseEvent e) { /* Do nothing */ }
 
+    /** This method is not used and does nothing */
     public void mouseEntered(MouseEvent event) { /* Do nothing */ }
 
+    /** This method is not used and does nothing */
     public void mouseExited(MouseEvent event) { /* Do nothing */ }
 
+    /** This method is not used and does nothing */
     public void mousePressed(MouseEvent event) { /* Do nothing */ }
 
+    /** This method is not used and does nothing */
     public void mouseReleased(MouseEvent event) { /* Do nothing */ }
 }
