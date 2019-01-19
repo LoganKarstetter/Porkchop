@@ -195,7 +195,8 @@ public class Game implements LevelWatcher, MouseWatcher
                     case 1:
                         if (player == null)
                         {
-                            player = new Player(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, 5, Entity.IDLE_RIGHT_GRAPHICS, graphicsMap.get(mappedId), playerInputComponent);
+                            player = new Player(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, 5,
+                                    Entity.IDLE_RIGHT_GRAPHICS, graphicsMap.get(mappedId), playerInputComponent, soundManager);
                             player.setLevelWatcher(this);
                             graphicsMap.get(mappedId).get(Entity.DYING_LEFT_GRAPHICS).setWatcher(player);
                             graphicsMap.get(mappedId).get(Entity.DYING_RIGHT_GRAPHICS).setWatcher(player);
@@ -370,7 +371,6 @@ public class Game implements LevelWatcher, MouseWatcher
             //Start/Restart button (coordinates from GIMP)
             if (new Rectangle(218, 549, 64, 42).contains(mousePosition))
             {
-                currentLevel = 0;
                 initializeLevel(playerInputComponent);
                 gameState = PLAYING_GAME;
             }
@@ -398,6 +398,7 @@ public class Game implements LevelWatcher, MouseWatcher
     public void gameOver()
     {
         //Set the state to the final menu
+        currentLevel = 0;
         gameState = FINAL_MENU;
     }
 

@@ -18,6 +18,7 @@ public class Sound implements LineListener
         if (loadSound(filePath)) {
             //Determine the duration of the clip in secs
             durationInSecs = (int) (soundClip.getMicrosecondLength() / 1000000);
+            soundClip.addLineListener(this);
         }
     }
 
@@ -57,7 +58,9 @@ public class Sound implements LineListener
 
             //Close the audio stream
             audioStream.close();
-        } catch (IOException exception)
+            return true;
+        }
+        catch (IOException exception)
         {
             System.out.println("Error loading sound: " + filePath);
             exception.printStackTrace();

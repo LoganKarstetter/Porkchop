@@ -6,10 +6,11 @@ public class Player extends Entity implements AnimationWatcher
     private static final int MAX_JUMPING_UPDATES = 14;
     private int numOfJumpingUpdates;
     private InputComponent inputComponent;
+    private SoundManager soundManager;
     private LevelWatcher levelWatcher;
 
-    public Player(int x, int y, int speedInPixels, int defaultGraphicsState,
-                  HashMap<Integer, Animation> playerSpecificGraphics, InputComponent playerInputComponent)
+    public Player(int x, int y, int speedInPixels, int defaultGraphicsState, HashMap<Integer, Animation> playerSpecificGraphics,
+                  InputComponent playerInputComponent, SoundManager playerSoundManager)
     {
         //Set class data
         state = NORMAL_STATE;
@@ -23,6 +24,7 @@ public class Player extends Entity implements AnimationWatcher
         graphicsState = defaultGraphicsState;
         graphicsMap = playerSpecificGraphics;
         inputComponent = playerInputComponent;
+        soundManager = playerSoundManager;
         boundingBox = new Rectangle(x, y, graphicsMap.get(graphicsState).getImageWidth(), graphicsMap.get(graphicsState).getImageHeight());
 
         //Store the player spawn point for re-spawning
@@ -83,6 +85,7 @@ public class Player extends Entity implements AnimationWatcher
                 else if (eventBlocks[i].getBlockType() == EventBlock.BLOCK_COLLECT)
                 {
                     //Inform the game that an item was collected
+                    soundManager.playSound("Pop", false);
                     eventBlocks[i].activate();
                     levelWatcher.itemCollected();
                 }
@@ -197,6 +200,9 @@ public class Player extends Entity implements AnimationWatcher
 
                 //Move the player's position upwards so that the smoke puff is relative to the blocks
                 boundingBox.y = (boundingBox.y / Block.BLOCK_HEIGHT) * Block.BLOCK_HEIGHT;
+
+                //Play the death sound
+                soundManager.playSound("Squeal", false);
             }
             changeRibbonScrollDirection(ribbons, numRibbons, Ribbon.SCROLL_STILL);
 
