@@ -65,3 +65,12 @@ Grass Block Cavern Ceiling Column.png
 Grass Block Cavern Lower Left.png
 Grass Block Cavern Lower Right.png
 Grass Block Spike Top.png
+Grass Block Double Merge.png
+Grass Block Left Side Merge.png
+Grass Block Right Side Merge.png
+Grass Block Column Top Merge.png
+Grass Block Cavern Left.png
+Grass Block Cavern Right.png
+Grass Block Cavern.png
+Grass Block Cavern Left Merge.png
+Grass Block Cavern Right Merge.png

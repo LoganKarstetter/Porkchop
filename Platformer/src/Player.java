@@ -230,6 +230,9 @@ public class Player extends Entity implements AnimationWatcher
                     soundManager.playSound("Poof", false);
                     levelWatcher.enemyDefeated();
                     state = JUMPING_STATE;
+
+                    //Give the player an extra boost
+                    numOfJumpingUpdates = -5;
                 }
                 else //Kill the player
                 {

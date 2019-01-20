@@ -47,6 +47,10 @@ public class MidiSequence
             midiSequence = MidiSystem.getSequence(getClass().getResource(filePath));
             return true;
         }
+        catch (NullPointerException exception)
+        {
+            System.out.println("Could not find sequence: " + filePath);
+        }
         catch (IOException exception)
         {
             System.out.println("Error loading sequence: " + filePath);
