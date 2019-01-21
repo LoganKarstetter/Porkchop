@@ -1,4 +1,5 @@
 import javax.swing.*;
+
 /**
  * @author Logan Karstetter
  * Date: 2018
@@ -16,7 +17,7 @@ public class Launcher extends JFrame
      */
     public Launcher(int framesPerSecond)
     {
-        super("");
+        super("Porkchop");
 
         //Create and add the game panel
         GamePanel gamePanel = new GamePanel(framesPerSecond);

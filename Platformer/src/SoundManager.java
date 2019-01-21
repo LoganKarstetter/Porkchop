@@ -35,7 +35,7 @@ public class SoundManager
     private void loadSoundsFromFile(String fileName)
     {
         //Inform the user of the file reading
-        System.out.println("Reading file: " + directory + fileName);
+        System.out.println("Reading file: " + directory + "fileName");
         try
         {
             //Create an InputStream and BufferedReader to read the file

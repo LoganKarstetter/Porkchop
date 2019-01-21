@@ -45,7 +45,7 @@ public class Sound implements LineListener
         try
         {
             //Create an AudioInputStream to the file
-            AudioInputStream audioStream = AudioSystem.getAudioInputStream(getClass().getResourceAsStream(filePath));
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(this.getClass().getResource(filePath));
             AudioFormat audioFormat = audioStream.getFormat();
 
             //Convert ULAW and ALAW formats to PCM format to support sound manipulation, if desired

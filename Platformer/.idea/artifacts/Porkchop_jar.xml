@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact name="Porkchop:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Porkchop_jar</output-path>
+    <root id="root">
+      <element id="archive" name="Porkchop.jar">
+        <element id="module-output" name="Porkchop" />
+      </element>
+    </root>
+  </artifact>
+</component>
