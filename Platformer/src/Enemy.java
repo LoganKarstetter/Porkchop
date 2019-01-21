@@ -4,10 +4,11 @@ import java.util.HashMap;
  * @author Logan Karstetter
  * Date: 2018
  */
-public class Enemy extends Entity implements AnimationWatcher
+public class Enemy extends Entity
 {
     /** The number of pixels an enemy falls every game loop */
     private static final int ENEMY_VERTICAL_SPEED = 5;
+
     /** The flag specifying if this enemy is alive and should be drawn */
     private boolean isActive;
 
@@ -51,7 +52,19 @@ public class Enemy extends Entity implements AnimationWatcher
     {
         if (isActive)
         {
+            //If the animation has ended, set waiting for animation to false and reset the elapsed time
             elapsedAnimationTimeInMs = graphicsMap.get(graphicsState).update(loopPeriodInMs, elapsedAnimationTimeInMs);
+            if (elapsedAnimationTimeInMs == Animation.ANIMATION_ENDED && waitingForAnimation)
+            {
+                waitingForAnimation = false;
+
+                //Inform the level watcher if applicable, only special enemies have a level watcher
+                if (levelWatcher != null)
+                {
+                    //ONLY THE PURPLE BOAR SHOULD HAVE A LEVEL WATCHER
+                    levelWatcher.specialEnemyDied();
+                }
+            }
             move(blockMap, eventBlocks, numEventBlocks);
         }
     }
@@ -166,7 +179,10 @@ public class Enemy extends Entity implements AnimationWatcher
      */
     public void draw(Graphics dbGraphics, int xOffset, int yOffset)
     {
-        graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset, elapsedAnimationTimeInMs);
+        if (isActive)
+        {
+            graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset, elapsedAnimationTimeInMs);
+        }
     }
 
     /**
@@ -178,17 +194,5 @@ public class Enemy extends Entity implements AnimationWatcher
         state = NORMAL_STATE;
         setGraphicsState(state, direction, true);
         boundingBox.setLocation(spawnPoint);
-    }
-
-    /**
-     * This method is called when an enemy's death animation ends. It sets a flag
-     * specifying that the enemy no longer needs to be drawn.
-     */
-    public void animationHasEnded()
-    {
-        if (waitingForAnimation)
-        {
-            waitingForAnimation = false;
-        }
     }
 }

@@ -58,6 +58,8 @@ public abstract class Entity
     protected Rectangle boundingBox;
     /** Maps graphics states (integers) to animations */
     protected HashMap<Integer, Animation> graphicsMap;
+    /** The watcher that is notified when the entity triggers level events */
+    protected LevelWatcher levelWatcher;
 
     /**
      * Move the entity horizontally. The direction of movement is determined by the
@@ -360,5 +362,15 @@ public abstract class Entity
     final protected void setEntityState(int newState)
     {
         state = newState;
+    }
+
+    /**
+     * Set the level watcher to notify when level events occur.
+     * Note: Only the player and the purple boar enemy should call this!
+     * @param gameLevelWatcher The level watcher.
+     */
+    public void setLevelWatcher(LevelWatcher gameLevelWatcher)
+    {
+        levelWatcher = gameLevelWatcher;
     }
 }

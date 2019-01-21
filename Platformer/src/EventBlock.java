@@ -7,14 +7,18 @@ import java.util.HashMap;
  */
 public class EventBlock extends Block
 {
-    /** The enum representing the inactive block type */
+    /** The constant representing the inactive block type */
     public static final int BLOCK_INACTIVE = 0;
-    /** The enum representing the advance level block type */
+    /** The constant representing the advance level block type */
     public static final int BLOCK_LEVEL = 1;
-    /** The enum representing the dangerous block type */
+    /** The constant representing the dangerous block type */
     public static final int BLOCK_DANGER = 2;
-    /** The enum representing the collectible block type */
+    /** The constant representing the collectible block type */
     public static final int BLOCK_COLLECT = 3;
+    /** The constant representing a special block type */
+    public static final int BLOCK_SPECIAL_INACTIVE = 4;
+    /** The constant representing a special block type */
+    public static final int BLOCK_SPECIAL_COLLECT = 5;
     /** The type of the event block */
     private int blockType;
 
@@ -43,7 +47,7 @@ public class EventBlock extends Block
      */
     public void draw(Graphics dbGraphics, int xOffset, int yOffset)
     {
-        if (blockType != BLOCK_INACTIVE)
+        if (blockType != BLOCK_INACTIVE && blockType != BLOCK_SPECIAL_INACTIVE)
         {
             graphicsMap.get(NORMAL_GRAPHICS).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset, elapsedAnimationTimeInMs);
         }
@@ -56,7 +60,7 @@ public class EventBlock extends Block
     public void activate()
     {
         //If a block is activated by the player, perform actions based on block type
-        if (blockType == BLOCK_COLLECT)
+        if (blockType == BLOCK_COLLECT || blockType == BLOCK_SPECIAL_COLLECT)
         {
             //Disable collectibles after the first interaction
             blockType = BLOCK_INACTIVE;
@@ -79,5 +83,14 @@ public class EventBlock extends Block
     public int getBlockType()
     {
         return blockType;
+    }
+
+    /**
+     * Set the block type of a block.
+     * @param newBlockType The new block type.
+     */
+    public void setBlockType(int newBlockType)
+    {
+        blockType = newBlockType;
     }
 }

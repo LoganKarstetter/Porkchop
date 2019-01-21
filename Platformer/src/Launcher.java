@@ -7,6 +7,8 @@ public class Launcher extends JFrame
 {
     /** The default and recommend FPS value */
     private static final int DEFAULT_FPS = 30;
+    /** The number of game cycles in a single second */
+    public static final int ONE_SECOND = DEFAULT_FPS;
 
     /**
      * Create a launcher for launching the game.
@@ -29,31 +31,13 @@ public class Launcher extends JFrame
     }
 
     /**
-     * Reads command line arguments and starts the game.
+     * Start the game at the default FPS.
      * @param args The command line argument for the FPS.
      */
     public static void main(String[] args)
     {
-        //Read FPS argument from command line
-        if (args.length > 0)
-        {
-            try
-            {
-                int framesPerSec = Integer.parseInt(args[0]);
-                System.out.println("Running with FPS: " + framesPerSec);
-                new Launcher(framesPerSec);
-            }
-            catch (Exception anyException)
-            {
-                System.out.println("Unable to set requested FPS: " + args[0]
-                        + "\nEnter only a single integer. Exiting.");
-                System.exit(0);
-            }
-        }
-        else //Use a hardcoded FPS
-        {
-            System.out.println("Running with default FPS: " + DEFAULT_FPS);
-            new Launcher(DEFAULT_FPS);
-        }
+        //Leave the FPS at 30
+        System.out.println("Running with default FPS: " + DEFAULT_FPS);
+        new Launcher(DEFAULT_FPS);
     }
 }

@@ -4,7 +4,7 @@ import java.util.HashMap;
  * @author Logan Karstetter
  * Date: 2018
  */
-public class Player extends Entity implements AnimationWatcher
+public class Player extends Entity
 {
     /** The maximum number of game cycles that the player can be rising without falling */
     private static final int MAX_JUMPING_UPDATES = 14;
@@ -15,8 +15,6 @@ public class Player extends Entity implements AnimationWatcher
     private InputComponent inputComponent;
     /** The soundManager that plays game sounds */
     private SoundManager soundManager;
-    /** The watcher that is notified when the player triggers level events */
-    private LevelWatcher levelWatcher;
 
     /**
      * Create a new player.
@@ -66,8 +64,15 @@ public class Player extends Entity implements AnimationWatcher
     public Point update(int[][] blockMap, Enemy[] enemies, int numOfEnemies, EventBlock[] eventBlocks,
                         int numEventBlocks, Ribbon[] ribbons, int numRibbons, long loopPeriodInMs)
     {
+        //Process user input and update the animations
         inputComponent.update();
         elapsedAnimationTimeInMs = graphicsMap.get(graphicsState).update(loopPeriodInMs, elapsedAnimationTimeInMs);
+
+        //If the animation has ended, set waiting for animation to false and reset the elapsed time
+        if (elapsedAnimationTimeInMs == Animation.ANIMATION_ENDED && waitingForAnimation)
+        {
+            waitingForAnimation = false;
+        }
         move(blockMap, enemies, numOfEnemies, eventBlocks, numEventBlocks, ribbons, numRibbons);
         return boundingBox.getLocation();
     }
@@ -212,8 +217,8 @@ public class Player extends Entity implements AnimationWatcher
      * Check if the enemy has collided with an enemies. If the player has collided with
      * an enemy, but either jumped/fell on top of them, then the enemy will be killed. Otherwise,
      * the player will be killed.
-     **@param enemies The enemies present in the current level.
-     * @param numOfEnemies The number of enemies.
+     * @param enemies The enemies present in the current level.
+     * @param numEnemies The number of enemies.
      */
     private void checkEnemyCollisions(Enemy[] enemies, int numEnemies)
     {
@@ -274,6 +279,14 @@ public class Player extends Entity implements AnimationWatcher
                     eventBlocks[i].activate();
                     levelWatcher.itemCollected();
                 }
+                else if (eventBlocks[i].getBlockType() == EventBlock.BLOCK_SPECIAL_COLLECT)
+                {
+                    //Inform the game that an item was collected
+                    soundManager.playSound("Pop", false);
+                    eventBlocks[i].activate();
+                    levelWatcher.itemCollected();
+                    levelWatcher.activateEasterEgg();
+                }
             }
         }
         return false;
@@ -288,26 +301,5 @@ public class Player extends Entity implements AnimationWatcher
     public void draw(Graphics dbGraphics, int xOffset, int yOffset)
     {
         graphicsMap.get(graphicsState).draw(dbGraphics, boundingBox.x + xOffset, boundingBox.y + yOffset, elapsedAnimationTimeInMs);
-    }
-
-    /**
-     * This method is called when an player's death animation ends. It sets a flag
-     * specifying that the player can respawn without interrupting.
-     */
-    public void animationHasEnded()
-    {
-        if (waitingForAnimation)
-        {
-            waitingForAnimation = false;
-        }
-    }
-
-    /**
-     * Set the level watcher to notify when level event occur.
-     * @param gameLevelWatcher The level watcher.
-     */
-    public void setLevelWatcher(LevelWatcher gameLevelWatcher)
-    {
-        levelWatcher = gameLevelWatcher;
     }
 }

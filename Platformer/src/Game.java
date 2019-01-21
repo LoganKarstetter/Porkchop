@@ -63,6 +63,8 @@ public class Game implements LevelWatcher, MouseWatcher
     private int numRibbons;
     /** The current level */
     private int currentLevel;
+    /** The total number of carrots in the entire game */
+    private int totalNumCarrots;
     /** The number of carrots collected this game */
     private int numCarrotsCollected;
     /** The decimal place values of the number of carrots */
@@ -73,8 +75,14 @@ public class Game implements LevelWatcher, MouseWatcher
     private int[] numEnemiesValues;
     /** The number of player lives remaining */
     private int numPlayerLives;
+
     /** Flag specifying if the golden carrot was found */
     private boolean goldenCarrotFound;
+    /** Flag specifying the easter egg has been triggered */
+    private boolean easterEggActivated;
+    /** The number of game cycles waited activating the easter egg */
+    private int gameCyclesWaitedForEasterEgg;
+
 
     /**
      * Create a game.
@@ -97,15 +105,14 @@ public class Game implements LevelWatcher, MouseWatcher
 
         //Set the state to the main menu
         gameState = MAIN_MENU;
+        totalNumCarrots = 0;
 
         //Enable the sound and music
-        levelSongs = new String[]{ "takemehomecountryroads", "amarillobymorning", "dancinginthedark", "purplerain", "takeonme" };
+        levelSongs = new String[]{ "takemehomecountryroads", "amarillobymorning", "dancinginthedark", "eyeswithoutaface", "takeonme" };
+        gameCyclesWaitedForEasterEgg = 0;
 
         //Setup mouse event monitoring
         playerInputComponent.setMouseWatcher(this);
-
-        //Initialize the first level
-        initializeLevel(playerInputComponent);
     }
 
     /**
@@ -215,6 +222,21 @@ public class Game implements LevelWatcher, MouseWatcher
         graphicsMap.get(38).put(Entity.DYING_LEFT_GRAPHICS,   new Animation(imageManager.getImages("Smoke Puff"), 500, false));
         graphicsMap.get(38).put(Entity.DYING_RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Smoke Puff"), 500, false));
 
+        //Purple Boar
+        graphicsMap.put(39, new HashMap<>());
+        graphicsMap.get(39).put(Entity.IDLE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Purple Boar Left"), 0, false));
+        graphicsMap.get(39).put(Entity.IDLE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Purple Boar Left"), 0, false));
+        graphicsMap.get(39).put(Entity.MOVE_LEFT_GRAPHICS,    new Animation(imageManager.getImages("Purple Boar Left"), 0, false));
+        graphicsMap.get(39).put(Entity.MOVE_RIGHT_GRAPHICS,   new Animation(imageManager.getImages("Purple Boar Left"), 0, false));
+        graphicsMap.get(39).put(Entity.MIDAIR_LEFT_GRAPHICS,  new Animation(imageManager.getImages("Purple Boar Left"), 0, false));
+        graphicsMap.get(39).put(Entity.MIDAIR_RIGHT_GRAPHICS, new Animation(imageManager.getImages("Purple Boar Left"), 0, false));
+        graphicsMap.get(39).put(Entity.DYING_LEFT_GRAPHICS,   new Animation(imageManager.getImages("Smoke Puff"), 500, false));
+        graphicsMap.get(39).put(Entity.DYING_RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Smoke Puff"), 500, false));
+
+        //Purple Carrot event block
+        graphicsMap.put(40, new HashMap<>());
+        graphicsMap.get(40).put(Block.NORMAL_GRAPHICS,  new Animation(imageManager.getImages("Purple Carrot"), 1200, true));
+
         //Define the ribbon(s)
         addRibbon(new Ribbon(imageManager.getImages("Platformer Ribbon").get(0), Ribbon.SCROLL_STILL, 2));
 
@@ -237,8 +259,6 @@ public class Game implements LevelWatcher, MouseWatcher
                             player = new Player(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, 5,
                                     Entity.IDLE_RIGHT_GRAPHICS, graphicsMap.get(mappedId), playerInputComponent, soundManager);
                             player.setLevelWatcher(this);
-                            graphicsMap.get(mappedId).get(Entity.DYING_LEFT_GRAPHICS).setWatcher(player);
-                            graphicsMap.get(mappedId).get(Entity.DYING_RIGHT_GRAPHICS).setWatcher(player);
                         }
                         else //The player has already been defined, change position to start point
                         {
@@ -288,14 +308,9 @@ public class Game implements LevelWatcher, MouseWatcher
                         }
                         break;
                     case 32: //Turtle
-                        if ( addEnemy(new Enemy(x * Block.BLOCK_WIDTH,
+                        addEnemy(new Enemy(x * Block.BLOCK_WIDTH,
                                 y * Block.BLOCK_HEIGHT + (Block.BLOCK_HEIGHT - graphicsMap.get(mappedId).get(Entity.IDLE_LEFT_GRAPHICS).getImageHeight()),
-                                1, Enemy.LEFT, graphicsMap.get(mappedId))))
-                        {
-                            //Add the animation watcher if the enemy is successfully added
-                            graphicsMap.get(mappedId).get(Entity.DYING_LEFT_GRAPHICS).setWatcher(enemies[numEnemies]);
-                            graphicsMap.get(mappedId).get(Entity.DYING_RIGHT_GRAPHICS).setWatcher(enemies[numEnemies]);
-                        }
+                                1, Enemy.LEFT, graphicsMap.get(mappedId)));
                         break;
                     case 33: //Level Complete Sign
                         addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_LEVEL, graphicsMap.get(mappedId)));
@@ -305,29 +320,34 @@ public class Game implements LevelWatcher, MouseWatcher
                         break;
                     case 35: //Carrot
                         addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_COLLECT, graphicsMap.get(mappedId)));
+                        totalNumCarrots++;
                         break;
                     case 36: //Golden Carrot
                         addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_LEVEL, graphicsMap.get(mappedId)));
+                        totalNumCarrots++;
                         break;
                     case 37: //Boar
-                        if ( addEnemy(new Enemy(x * Block.BLOCK_WIDTH,
+                        addEnemy(new Enemy(x * Block.BLOCK_WIDTH,
                                 y * Block.BLOCK_HEIGHT + (Block.BLOCK_HEIGHT - graphicsMap.get(mappedId).get(Entity.IDLE_LEFT_GRAPHICS).getImageHeight()),
-                                3, Enemy.LEFT, graphicsMap.get(mappedId))))
-                        {
-                            //Add the animation watcher if the enemy is successfully added
-                            graphicsMap.get(mappedId).get(Entity.DYING_LEFT_GRAPHICS).setWatcher(enemies[numEnemies]);
-                            graphicsMap.get(mappedId).get(Entity.DYING_RIGHT_GRAPHICS).setWatcher(enemies[numEnemies]);
-                        }
+                                3, Enemy.LEFT, graphicsMap.get(mappedId)));
                         break;
                     case 38: //Chicken
+                        addEnemy(new Enemy(x * Block.BLOCK_WIDTH,
+                                y * Block.BLOCK_HEIGHT + (Block.BLOCK_HEIGHT - graphicsMap.get(mappedId).get(Entity.IDLE_LEFT_GRAPHICS).getImageHeight()),
+                                2, Enemy.LEFT, graphicsMap.get(mappedId)));
+                        break;
+                    case 39: //Purple Boar
                         if ( addEnemy(new Enemy(x * Block.BLOCK_WIDTH,
                                 y * Block.BLOCK_HEIGHT + (Block.BLOCK_HEIGHT - graphicsMap.get(mappedId).get(Entity.IDLE_LEFT_GRAPHICS).getImageHeight()),
-                                2, Enemy.LEFT, graphicsMap.get(mappedId))))
+                                0, Enemy.STILL, graphicsMap.get(mappedId))))
                         {
-                            //Add the animation watcher if the enemy is successfully added
-                            graphicsMap.get(mappedId).get(Entity.DYING_LEFT_GRAPHICS).setWatcher(enemies[numEnemies]);
-                            graphicsMap.get(mappedId).get(Entity.DYING_RIGHT_GRAPHICS).setWatcher(enemies[numEnemies]);
+                            //Add the level watcher so that the purple boar's death can trigger special events
+                            enemies[numEnemies - 1].setLevelWatcher(this);
                         }
+                        break;
+                    case 40: //Purple Carrot
+                        addEventBlock(new EventBlock(x * Block.BLOCK_WIDTH, y * Block.BLOCK_HEIGHT, EventBlock.BLOCK_SPECIAL_INACTIVE, graphicsMap.get(mappedId)));
+                        totalNumCarrots++;
                         break;
                     default: //Default
                         System.out.println("No definition found for id = " + mappedId);
@@ -367,6 +387,20 @@ public class Game implements LevelWatcher, MouseWatcher
             for (int i = 0; i < numRibbons; i++)
             {
                 ribbons[i].update();
+            }
+
+            //If the easter egg has been activated wait before playing the sounds/music.
+            //This prevents the weird track ending MIDI sounds from playing over it.
+            if (easterEggActivated)
+            {
+                //Increment the wait counter, play after ~2 seconds
+                gameCyclesWaitedForEasterEgg++;
+                if (gameCyclesWaitedForEasterEgg >= 2 * Launcher.ONE_SECOND)
+                {
+                    soundManager.playSound("GameBlouses", false);
+                    midiManager.play("purplerain", true);
+                    easterEggActivated = false;
+                }
             }
         }
     }
@@ -501,6 +535,34 @@ public class Game implements LevelWatcher, MouseWatcher
     }
 
     /**
+     * When an easter egg is activated by the player, this method will be called.
+     * It sets a flag specifying the easter egg has been triggered, but the special
+     * sounds/music will not actually play for ~2 seconds. This prevents the trailing
+     * level's music from interrupting the easter egg.
+     */
+    @Override
+    public void activateEasterEgg()
+    {
+        midiManager.pause();
+        easterEggActivated = true;
+    }
+
+    /**
+     * Change the scrolling direction of the background ribbons. The player drives this action
+     * since it is based on its movement.
+     * @param newScrollDirection The new direction the ribbon should scroll.
+     */
+    @Override
+    public void changeRibbonScrollDirection(int newScrollDirection)
+    {
+        //Set the ribbon scroll direction
+        for (int i = 0; i < numRibbons; i++)
+        {
+            ribbons[i].setScrollDirection(newScrollDirection);
+        }
+    }
+
+    /**
      * Change to the next level. If the next level does not exist, then
      * the game ends.
      * @param playerInputComponent The inputComponent that processes the user's inputs.
@@ -520,6 +582,7 @@ public class Game implements LevelWatcher, MouseWatcher
         {
             //The Golden Carrot was found
             goldenCarrotFound = true;
+            numCarrotsCollected++;
             gameOver();
         }
     }
@@ -603,20 +666,21 @@ public class Game implements LevelWatcher, MouseWatcher
                 ribbons[i].reset();
             }
         }
-
     }
 
     /**
-     * Change the scrolling direction of the background ribbons. The player drives this action
-     * since it is based on its movement.
-     * @param newScrollDirection The new direction the ribbon should scroll.
+     * Handle the death of special enemies. This method is only used to trigger
+     * special block events in the game.
      */
-    public void changeRibbonScrollDirection(int newScrollDirection)
+    @Override
+    public void specialEnemyDied()
     {
-        //Set the ribbon scroll direction
-        for (int i = 0; i < numRibbons; i++)
+        for (int i = 0; i < numEventBlocks; i++)
         {
-            ribbons[i].setScrollDirection(newScrollDirection);
+            if (eventBlocks[i].getBlockType() == EventBlock.BLOCK_SPECIAL_INACTIVE)
+            {
+                eventBlocks[i].setBlockType(EventBlock.BLOCK_SPECIAL_COLLECT);
+            }
         }
     }
 
@@ -629,6 +693,12 @@ public class Game implements LevelWatcher, MouseWatcher
         midiManager.pause();
         currentLevel = 0;
         gameState = FINAL_MENU;
+
+        //Reward the players that found all the carrots
+        if (numCarrotsCollected == totalNumCarrots)
+        {
+            soundManager.playSound("CarrotCongratulations",false);
+        }
     }
 
     /**

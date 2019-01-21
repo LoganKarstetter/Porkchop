@@ -8,6 +8,10 @@ import java.util.ArrayList;
  */
 public class Animation
 {
+    /** The constant returned instead of the localElapsedTime whenever
+     * an non-looping animation has ended. This is more efficient than
+     * using watchers since multiple entities share the same animations */
+    public static final int ANIMATION_ENDED = -1;
     /** The sequence of images for this animation */
     private ArrayList<BufferedImage> images;
     /** The total duration of the animation in ms */
@@ -16,8 +20,6 @@ public class Animation
     private long imageDurationInMs;
     /** Looping animation flag */
     private boolean isLooping;
-    /** The object to notify when animation events occur */
-    private AnimationWatcher watcher;
 
     /**
      * Create a new animation using an sequence of images, a specific duration in milliseconds, and
@@ -50,17 +52,15 @@ public class Animation
      */
     public long update(long loopPeriodInMs, long localElapsedTimeInMs)
     {
-        //Verify looping flag after the first complete loop
+        //Update the animation if we are not on the last frame or if it is looping
         if ((localElapsedTimeInMs / imageDurationInMs) < (images.size() - 1) || isLooping)
         {
             //Compute elapsed time and reset to zero if it's greater than or equal to the total duration
             localElapsedTimeInMs = (localElapsedTimeInMs + loopPeriodInMs) % totalDurationInMs;
         }
-        else //Inform the watcher that the animation ended
+        else //Inform the entity that the animation has ended
         {
-            if (watcher != null) {
-                watcher.animationHasEnded();
-            }
+            return ANIMATION_ENDED;
         }
 
         //Return updated local elapsed time
@@ -78,16 +78,6 @@ public class Animation
     {
         //Draw the animation
         dbGraphics.drawImage(images.get((int) (localElapsedTimeInMs / imageDurationInMs)), x, y, null);
-    }
-
-    /**
-     * Set a watcher for this animation. The watcher will be notified when
-     * the animation reaches its end.
-     * @param animationWatcher The watcher for this animation.
-     */
-    public void setWatcher(AnimationWatcher animationWatcher)
-    {
-        watcher = animationWatcher;
     }
 
     /**
