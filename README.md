@@ -27,5 +27,4 @@ How to add anything else:
 
 If anyone ever actually tries to add or change anything, which I'm doubting, feel free to email me if you need help.
 
-Thank you,
 Logan
