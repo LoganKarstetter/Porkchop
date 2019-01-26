@@ -105,11 +105,9 @@ public class Game implements LevelWatcher, MouseWatcher
 
         //Set the state to the main menu
         gameState = MAIN_MENU;
-        totalNumCarrots = 0;
 
         //Enable the sound and music
         levelSongs = new String[]{ "takemehomecountryroads", "amarillobymorning", "dancinginthedark", "eyeswithoutaface", "takeonme" };
-        gameCyclesWaitedForEasterEgg = 0;
 
         //Setup mouse event monitoring
         playerInputComponent.setMouseWatcher(this);
@@ -145,6 +143,7 @@ public class Game implements LevelWatcher, MouseWatcher
             graphicsMap.get(1).put(Entity.DYING_RIGHT_GRAPHICS,  new Animation(imageManager.getImages("Smoke Puff"), 500, false));
 
             //Set the number of carrots collected and enemies defeated
+            totalNumCarrots = 0;
             numCarrotsCollected = 0;
             numCarrotsValues = new int[3]; //Hundreds -> ones places
             numEnemiesDefeated = 0;
@@ -152,6 +151,7 @@ public class Game implements LevelWatcher, MouseWatcher
 
             //Set the number of lives
             numPlayerLives = 3;
+            gameCyclesWaitedForEasterEgg = 0;
 
             //Set the goldenCarrotFound flag
             goldenCarrotFound = false;
@@ -582,7 +582,7 @@ public class Game implements LevelWatcher, MouseWatcher
         {
             //The Golden Carrot was found
             goldenCarrotFound = true;
-            numCarrotsCollected++;
+            itemCollected();
             gameOver();
         }
     }
