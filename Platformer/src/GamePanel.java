@@ -188,7 +188,7 @@ public class GamePanel extends JPanel implements Runnable
     }
 
     /**
-     * Actively render/draw the dbImage (created in gameRender()) onto the screen/AsteroidRunPanel.
+     * Actively render/draw the dbImage (created in gameRender()) onto the screen.
      */
     private void paintScreen()
     {
