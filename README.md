@@ -4,7 +4,7 @@ Are ye thirsty for adventure? Seeking to improve your vision? In this 2D platfor
 How to play:
 - Download the Porkchop.jar file (you may have to install java, idk).
 - Double click the downloaded file to launch it.
-- Use you mouse to navigate the menu's and mute/unmute the sound and audio.
+- Use you mouse to navigate the menus and mute/unmute the sound and audio.
 - Use the arrow keys to jump, and move left and right.
 - If it's super tiny, adjust your resolution if you can.
 
